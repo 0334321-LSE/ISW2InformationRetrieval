@@ -39,25 +39,32 @@ public class CommitRetriever {
     }
 
 
-    public Map<String, ArrayList<String>> retrieveCommitFromTickets(List<String> ticketsIDs, String repoPath) throws GitAPIException, IOException {
-        FileRepositoryBuilder repositoryBuilder = new FileRepositoryBuilder();
+    public Map<String, ArrayList<RevCommit>> retrieveCommitFromTickets(List<String> ticketsIDs, List<RevCommit> commitList) throws GitAPIException, IOException {
+        /*FileRepositoryBuilder repositoryBuilder = new FileRepositoryBuilder();
         Repository repo = repositoryBuilder.setGitDir(new File(repoPath + "/.git")).build() ;
         Git git = new Git(repo) ;
         LogCommand logCommand = git.log() ;
         Iterable<RevCommit> commitIterable = logCommand.call() ;
-
-        Map<String, ArrayList<String>> ticketMap = new HashMap<>() ;
+        */
+        Map<String, ArrayList<RevCommit>> ticketMap = new LinkedHashMap<>();
         for (String ticketID : ticketsIDs) {
-            ticketMap.put(ticketID, new ArrayList<>()) ;
+            ticketMap.put(ticketID, new ArrayList<>());
         }
 
-        for (RevCommit commit : commitIterable) {
+        for (RevCommit commit : commitList) {
             String commitTicket = matchTicketAndCommit(commit.getFullMessage(), ticketsIDs);
             if (commitTicket.compareTo("") != 0) {
-                ticketMap.get(commitTicket).add(commit.getId().name());
+                ticketMap.get(commitTicket).add(commit);
             }
         }
-        //TODO find the commits associated to a ticket and then obtains the fix-version as the next one after the last ticket
+        try {
+            if (!ticketMap.isEmpty())
+                System.out.println("Found commits associated to tickets");
+        } catch(Exception e) {
+            System.out.println("Somethings went wrong with during the ticket-commit matching");
+        }
+        //TODO
+        // find the commits associated to a ticket and then obtains the fix-version as the next one after the last ticket
         return ticketMap ;
     }
 

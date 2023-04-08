@@ -5,7 +5,7 @@ import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,6 +22,9 @@ public class Main {
         Logger.getGlobal().info(versionInfoList.toString());
         CommitRetriever commitRetriever = new CommitRetriever() ;
         List<RevCommit> commitList = commitRetriever.retrieveAllCommitsInfo(repoPath + PROJECT_NAME, PROJECT_NAME);
+        Map<String, ArrayList<RevCommit>> ticketAndAssociatedCommit = commitRetriever.retrieveCommitFromTickets(bugTicketKeyList, commitList);
+        System.out.println("Goodbye");
+
 
 
     }

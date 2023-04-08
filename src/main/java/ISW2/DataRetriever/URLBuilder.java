@@ -13,6 +13,8 @@ public class URLBuilder {
     private final String[] resolutionList = new String[] {"Fixed"} ;
 
     private final String[] priorityList = new String[] {} ;
+
+    private final String[] orderType = new String[] {"Key","ASC"};
     private final String[] fieldsList = new String[] {"key","id","startdate", "resolutiondate", "versions", "created", "fixVersions","components"};
 
 
@@ -47,9 +49,16 @@ public class URLBuilder {
                 urlString.append("AND").append(urlPart);
             }
         }
+        urlString.append(addOrdering(orderType));
         return urlString + "&" + fieldsPart;
     }
 
+    private String addOrdering (String[] filterList){
+        //TODO FIX THE ORDERING
+        //ORDER%20BY%20key%20ASC
+        return "ORDER%20BY%20"+filterList[0]+"%20"+filterList[1];
+        //return "%20ORDER%20BY%20"+filterList[0]+"%20"+filterList[1]+"%2C";
+    }
     private String buildUrlPart(String filterName, String[] filterList) {
         StringBuilder urlPart = new StringBuilder();
 

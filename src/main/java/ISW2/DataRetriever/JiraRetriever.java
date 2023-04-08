@@ -50,8 +50,11 @@ public class JiraRetriever {
             issuesNumber = jsonIssueArray.length() ;
             startPoint = startPoint + maxAmount ;
         } while (issuesNumber == 0) ;
-        if(!issuesKeys.isEmpty()){
-            System.out.println(projectName.toUpperCase()+" ticket keys acquired");
+        try {
+            if(!issuesKeys.isEmpty())
+                System.out.println(projectName.toUpperCase()+" ticket keys acquired");
+        }catch (Exception e){
+            System.out.println("Somethings went wrong with during ticket keys acquisition");
         }
         return issuesKeys ;
     }
@@ -84,7 +87,7 @@ public class JiraRetriever {
         versionInfoList.sort(Comparator.comparing(VersionInfo::getVersionDate));
 
         for (VersionInfo info : versionInfoList) {
-            Logger.getGlobal().log(Level.INFO, "Version >> " + info.getVersionName());
+            Logger.getGlobal().log(Level.INFO, "Version >> " + info.getVersionName()+ "Date >> " + info.getVersionDate());
         }
 
         return versionInfoList ;
@@ -111,6 +114,7 @@ public class JiraRetriever {
             issuesKeys.add(jsonArray.getJSONObject(i).get("key").toString()) ;
         }
     }
+
 
 
 }
