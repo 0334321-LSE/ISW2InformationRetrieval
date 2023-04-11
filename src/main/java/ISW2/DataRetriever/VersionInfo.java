@@ -30,4 +30,11 @@ public class VersionInfo {
     public void setVersionName(String versionName) {
         this.versionName = versionName;
     }
+
+    public void printVersionInfo(){
+        System.out.println("\n-------------");
+        System.out.println("Name: "+this.versionName);
+        System.out.println("Date: "+this.versionDate);
+        System.out.println("ID: "+this.versionId);
+    }
 }

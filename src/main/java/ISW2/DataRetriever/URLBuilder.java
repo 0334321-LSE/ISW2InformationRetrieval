@@ -54,7 +54,6 @@ public class URLBuilder {
     }
 
     private String addOrdering (String[] filterList){
-        //TODO FIX THE ORDERING
         //ORDER%20BY%20key%20ASC
         return "ORDER%20BY%20"+filterList[0]+"%20"+filterList[1];
         //return "%20ORDER%20BY%20"+filterList[0]+"%20"+filterList[1]+"%2C";

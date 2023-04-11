@@ -8,14 +8,15 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class JiraRetriever {
 
-
-    public List<String> retrieveBugTicket(String projectName) throws IOException, URISyntaxException {
+    public List<BugTicket> retrieveBugTicket(String projectName) throws IOException, URISyntaxException {
+        List<BugTicket> bugTickets = new ArrayList<>();
         URLBuilder urlBuilder = new URLBuilder() ;
         String urlFirstPart = urlBuilder.buildUrl(projectName) ;
         int startPoint = 0 ;
@@ -35,28 +36,40 @@ public class JiraRetriever {
         file.close();
 
         ArrayList<String> issuesKeys = new ArrayList<>();
+        ArrayList<LocalDate> ticketsCreationDate = new ArrayList<>();
+        ArrayList<LocalDate> ticketsResolutionDate = new ArrayList<>();
+
          do {
             urlString = urlBuilder.completeUrl(startPoint, maxAmount, urlFirstPart) ;
             Logger.getGlobal().log(Level.INFO, urlString);
             URI uri2 = new URI(urlString) ;
-            URL url2 = uri.toURL() ;
+            URL url2 = uri2.toURL() ;
 
             jsonString = getJsonString(url2) ;
             JSONObject jsonObject = new JSONObject(jsonString) ;
             JSONArray jsonIssueArray = jsonObject.getJSONArray("issues") ;
 
             parseIssuesArray(issuesKeys, jsonIssueArray) ;
+            parseCreationDate(ticketsCreationDate, jsonIssueArray);
+            parseResolutionDate(ticketsResolutionDate,jsonIssueArray);
+
 
             issuesNumber = jsonIssueArray.length() ;
             startPoint = startPoint + maxAmount ;
         } while (issuesNumber == 0) ;
         try {
-            if(!issuesKeys.isEmpty())
-                System.out.println(projectName.toUpperCase()+" ticket keys acquired");
+            if(!issuesKeys.isEmpty() && !ticketsCreationDate.isEmpty() && !ticketsResolutionDate.isEmpty())
+            {
+                System.out.println(projectName.toUpperCase()+" issue tickets acquired");
+                for(int i=0; i< issuesKeys.size();i++){
+                    BugTicket bugTicket = new BugTicket(issuesKeys.get(i), ticketsCreationDate.get(i), ticketsResolutionDate.get(i));
+                    bugTickets.add(bugTicket);
+                }
+            }
         }catch (Exception e){
-            System.out.println("Somethings went wrong with during ticket keys acquisition");
+            System.out.println("Somethings went wrong issue tickets acquisition");
         }
-        return issuesKeys ;
+        return bugTickets;
     }
 
     public List<VersionInfo> retrieveVersions(String projectName) throws URISyntaxException, IOException {
@@ -93,6 +106,13 @@ public class JiraRetriever {
         return versionInfoList ;
     }
 
+    public List<String> getIssueKeyList(List<BugTicket> bugTicketsList){
+        List<String> issueKeyList = new ArrayList<>();
+        for (BugTicket bugTicket: bugTicketsList){
+            issueKeyList.add(bugTicket.getIssueKey());
+        }
+        return issueKeyList;
+    }
 
 
     private String getJsonString(URL url) throws IOException {
@@ -115,6 +135,32 @@ public class JiraRetriever {
         }
     }
 
+    private void parseCreationDate(ArrayList<LocalDate> ticketsCreationDate, JSONArray jsonArray){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-d");
+        for (int i = 0 ; i < jsonArray.length() ; i++) {
+            JSONObject fields = (JSONObject) jsonArray.getJSONObject(i).get("fields");
+            String dateString = fields.get("created").toString();
+            dateString = dateString.split("T")[0];
+            LocalDate localDate = LocalDate.parse(dateString, formatter);
+            ticketsCreationDate.add(localDate);
+        }
+    }
+
+    private void parseResolutionDate(ArrayList<LocalDate> ticketsResolutionDate, JSONArray jsonArray){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-d");
+        for (int i = 0 ; i < jsonArray.length() ; i++) {
+            JSONObject fields = (JSONObject) jsonArray.getJSONObject(i).get("fields");
+            String dateString = fields.get("resolutiondate").toString();
+            dateString = dateString.split("T")[0];
+            LocalDate localDate = LocalDate.parse(dateString, formatter);
+            ticketsResolutionDate.add(localDate);
+        }
+    }
+
+    public void printVersionList(List<VersionInfo> versionInfoList){
+        for (VersionInfo info: versionInfoList)
+            info.printVersionInfo();
+    }
 
 
 }
