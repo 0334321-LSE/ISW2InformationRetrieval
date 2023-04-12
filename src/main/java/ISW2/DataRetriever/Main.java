@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 public class Main {
 
     private static final String PROJECT_NAME = "bookkeeper" ;
+    //TODO make possible to insert the project name
     public static void main(String[] args) throws IOException, URISyntaxException, GitAPIException {
         String repoPath = "C:\\Users\\39388\\OneDrive\\Desktop\\ISW2\\Projects\\GitRepository\\" ;
 
@@ -25,11 +26,18 @@ public class Main {
         CommitRetriever commitRetriever = new CommitRetriever() ;
         List<RevCommit> commitList = commitRetriever.retrieveAllCommitsInfo(repoPath + PROJECT_NAME, PROJECT_NAME);
         Map<String, ArrayList<RevCommit>> ticketAndAssociatedCommit = commitRetriever.retrieveCommitFromTickets(bugTicketsKeys, commitList);
-        TicketVersionInformation ticketInformationRetriever = new TicketVersionInformation();
-        List<TicketVersionInformation> ticketVersionInformationList = ticketInformationRetriever.getVersionInformation(bugTickets,versionInfoList);
-        ticketInformationRetriever.printVersionInformationList(ticketVersionInformationList);
-        ticketInformationRetriever.checkConsistencyValidity(ticketVersionInformationList,versionInfoList);
+
+        BugTicket ticketInfoRetriever = new BugTicket();
+        ticketInfoRetriever.getVersionInformation(bugTickets,versionInfoList);
+        ticketInfoRetriever.printVersionInformationList(bugTickets);
+        List<BugTicket> bugTicketsForProportion = ticketInfoRetriever.correctBugTicketListForProportioning(bugTickets,versionInfoList);
+
+        //System.out.println("\nProportion value is: "+p);
+        //ticketInfoRetriever.printVersionInformationList(correctBugTickets);
+        ticketInfoRetriever.proportionForInjectedVersion(bugTickets,bugTicketsForProportion,versionInfoList);
+        ticketInfoRetriever.printVersionInformationList(bugTickets);
         System.out.println("\n\nGoodbye");
+
 
 
 

@@ -100,10 +100,6 @@ public class JiraRetriever {
 
         versionInfoList.sort(Comparator.comparing(VersionInfo::getVersionDate));
 
-        for (VersionInfo info : versionInfoList) {
-            Logger.getGlobal().log(Level.INFO, "Version >> " + info.getVersionName()+ "Date >> " + info.getVersionDate());
-        }
-
         return versionInfoList ;
     }
 

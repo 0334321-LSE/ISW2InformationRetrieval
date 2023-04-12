@@ -37,18 +37,19 @@ public class VersionInfo {
     }
 
     public void printVersionInfo(){
-        System.out.println("\n-------------");
-        System.out.println("Name: "+this.versionName);
-        System.out.println("Date: "+this.versionDate);
-        System.out.println("ID: "+this.versionId);
+        System.out.println("\n ----------------------------------------------");
+        System.out.print("| Name: "+this.versionName);
+        System.out.print(" | Date: "+this.versionDate);
+        System.out.print(" | ID: "+this.versionId+" |");
     }
 
     public Map<String, Integer> getVersionInteger(List<VersionInfo> versionInfoList){
         Map<String,Integer> versionMap = new LinkedHashMap<>();
         int i=0;
+        versionMap.put("NULL",i);
         for ( VersionInfo info: versionInfoList){
-            versionMap.put(info.versionName,i);
             i++;
+            versionMap.put(info.versionName,i);
         }
         return versionMap;
     }
