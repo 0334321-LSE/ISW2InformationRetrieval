@@ -63,8 +63,7 @@ public class CommitRetriever {
         } catch(Exception e) {
             System.out.println("Somethings went wrong with during the ticket-commit matching");
         }
-        //TODO
-        // find the commits associated to a ticket and then obtains the fix-version as the next one after the last ticket
+
         return ticketMap ;
     }
 

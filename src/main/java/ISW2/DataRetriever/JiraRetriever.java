@@ -38,6 +38,7 @@ public class JiraRetriever {
         ArrayList<String> issuesKeys = new ArrayList<>();
         ArrayList<LocalDate> ticketsCreationDate = new ArrayList<>();
         ArrayList<LocalDate> ticketsResolutionDate = new ArrayList<>();
+        ArrayList<String> affectedVersion = new ArrayList<>();
 
          do {
             urlString = urlBuilder.completeUrl(startPoint, maxAmount, urlFirstPart) ;
@@ -52,7 +53,7 @@ public class JiraRetriever {
             parseIssuesArray(issuesKeys, jsonIssueArray) ;
             parseCreationDate(ticketsCreationDate, jsonIssueArray);
             parseResolutionDate(ticketsResolutionDate,jsonIssueArray);
-
+            parseAffectedVersion(affectedVersion, jsonIssueArray);
 
             issuesNumber = jsonIssueArray.length() ;
             startPoint = startPoint + maxAmount ;
@@ -62,7 +63,7 @@ public class JiraRetriever {
             {
                 System.out.println(projectName.toUpperCase()+" issue tickets acquired");
                 for(int i=0; i< issuesKeys.size();i++){
-                    BugTicket bugTicket = new BugTicket(issuesKeys.get(i), ticketsCreationDate.get(i), ticketsResolutionDate.get(i));
+                    BugTicket bugTicket = new BugTicket(issuesKeys.get(i), ticketsCreationDate.get(i), ticketsResolutionDate.get(i), affectedVersion.get(i));
                     bugTickets.add(bugTicket);
                 }
             }
@@ -154,6 +155,19 @@ public class JiraRetriever {
             dateString = dateString.split("T")[0];
             LocalDate localDate = LocalDate.parse(dateString, formatter);
             ticketsResolutionDate.add(localDate);
+        }
+    }
+
+    private void parseAffectedVersion(ArrayList<String> affectedVersion, JSONArray jsonArray){
+
+        for (int i =0; i < jsonArray.length(); i++){
+            JSONObject fields = (JSONObject) jsonArray.getJSONObject(i).get("fields");
+            JSONArray versionArray = (JSONArray) fields.get("versions");
+            if( versionArray.length() != 0){
+                affectedVersion.add(versionArray.getJSONObject(0).get("name").toString());
+            }else{
+                affectedVersion.add("NULL");
+            }
         }
     }
 

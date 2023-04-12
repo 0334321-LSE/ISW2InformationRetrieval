@@ -28,7 +28,7 @@ public class Main {
         TicketVersionInformation ticketInformationRetriever = new TicketVersionInformation();
         List<TicketVersionInformation> ticketVersionInformationList = ticketInformationRetriever.getVersionInformation(bugTickets,versionInfoList);
         ticketInformationRetriever.printVersionInformationList(ticketVersionInformationList);
-        ticketInformationRetriever.checkConsistencyValidity(ticketVersionInformationList);
+        ticketInformationRetriever.checkConsistencyValidity(ticketVersionInformationList,versionInfoList);
         System.out.println("\n\nGoodbye");
 
 

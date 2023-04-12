@@ -6,16 +6,21 @@ import java.util.List;
 
 public class BugTicket {
 
-    public BugTicket(String issueKey, LocalDate ticketsCreationDate, LocalDate ticketsResolutionDate){
+    public BugTicket(){
+
+    }
+
+    public BugTicket(String issueKey, LocalDate ticketsCreationDate, LocalDate ticketsResolutionDate, String injectedVersion){
         this.issueKeys = issueKey;
         this.ticketsCreationDate = ticketsCreationDate;
         this.ticketsResolutionDate = ticketsResolutionDate;
+        this.injectedVersion = injectedVersion;
     }
 
-    private final String issueKeys;
-    private final LocalDate ticketsCreationDate;
-    private final LocalDate ticketsResolutionDate;
-
+    private  String issueKeys;
+    private  LocalDate ticketsCreationDate;
+    private  LocalDate ticketsResolutionDate;
+    private String injectedVersion;
 
     public String getIssueKey(){
         return this.issueKeys;
@@ -27,6 +32,11 @@ public class BugTicket {
         return this.ticketsResolutionDate;
     }
 
+    public String getInjectedVersion(){ return this.injectedVersion;}
+
+    private void calculateProportioning(){
+
+    }
 
 
 }
