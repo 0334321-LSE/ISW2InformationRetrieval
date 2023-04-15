@@ -77,7 +77,7 @@ public class CommitRetriever {
     }
 
     private void saveAllCommitsOnJSON(List<RevCommit> commitList, String projectName ) throws IOException {
-        FileWriter file = new FileWriter("./"+projectName+"Commits.json");
+        FileWriter file = new FileWriter("./projectsCommits"+projectName+"Commits.json");
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("ProjectName", projectName);
         JSONArray jsonArray = new JSONArray();

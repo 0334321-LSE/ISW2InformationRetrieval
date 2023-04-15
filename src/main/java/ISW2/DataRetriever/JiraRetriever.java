@@ -13,9 +13,11 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static java.lang.Integer.parseInt;
+
 public class JiraRetriever {
 
-    public List<BugTicket> retrieveBugTicket(String projectName) throws IOException, URISyntaxException {
+    public List<BugTicket> retrieveBugTicket(String projectName ,List<VersionInfo> versionInfoList ) throws IOException, URISyntaxException {
         List<BugTicket> bugTickets = new ArrayList<>();
         URLBuilder urlBuilder = new URLBuilder() ;
         String urlFirstPart = urlBuilder.buildUrl(projectName) ;
@@ -24,52 +26,53 @@ public class JiraRetriever {
         int issuesNumber;
 
         //Create JSON file with Jira bug tickets
-        FileWriter file = new FileWriter("./"+projectName+"JiraTicket.json");
-        String urlString = urlBuilder.completeUrl(startPoint, maxAmount, urlFirstPart) ;
-        URI uri = new URI(urlString) ;
-        URL url = uri.toURL() ;
-        String jsonString = getJsonString(url) ;
-        if(!jsonString.isEmpty()){
-            System.out.println(projectName.toUpperCase()+" Jira bug tickets acquired");
-        }
-        file.write(jsonString+"\n");
-        file.close();
+        FileWriter file = new FileWriter("./projectsTickets/"+projectName+"JiraTicket.json");
 
         ArrayList<String> issuesKeys = new ArrayList<>();
         ArrayList<LocalDate> ticketsCreationDate = new ArrayList<>();
         ArrayList<LocalDate> ticketsResolutionDate = new ArrayList<>();
         ArrayList<String> affectedVersion = new ArrayList<>();
 
-         do {
-            urlString = urlBuilder.completeUrl(startPoint, maxAmount, urlFirstPart) ;
-            Logger.getGlobal().log(Level.INFO, urlString);
-            URI uri2 = new URI(urlString) ;
-            URL url2 = uri2.toURL() ;
+        do {
+                    String urlString = urlBuilder.completeUrl(startPoint, maxAmount, urlFirstPart) ;
 
-            jsonString = getJsonString(url2) ;
-            JSONObject jsonObject = new JSONObject(jsonString) ;
-            JSONArray jsonIssueArray = jsonObject.getJSONArray("issues") ;
+                    URI uri2 = new URI(urlString) ;
+                    URL url2 = uri2.toURL() ;
 
-            parseIssuesArray(issuesKeys, jsonIssueArray) ;
-            parseCreationDate(ticketsCreationDate, jsonIssueArray);
-            parseResolutionDate(ticketsResolutionDate,jsonIssueArray);
-            parseAffectedVersion(affectedVersion, jsonIssueArray);
+                    String jsonString = getJsonString(url2) ;
+                    file.write(jsonString+"\n");
 
-            issuesNumber = jsonIssueArray.length() ;
+                    JSONObject jsonObject =  new JSONObject(jsonString) ;
+                    issuesNumber = parseInt(jsonObject.get("total").toString());
+
+                    JSONArray jsonIssueArray = jsonObject.getJSONArray("issues") ;
+
+
+                    parseIssuesArray(issuesKeys, jsonIssueArray) ;
+                    parseCreationDate(ticketsCreationDate, jsonIssueArray);
+                    parseResolutionDate(ticketsResolutionDate,jsonIssueArray);
+                    parseAffectedVersion(affectedVersion, jsonIssueArray, versionInfoList);
+
+
             startPoint = startPoint + maxAmount ;
-        } while (issuesNumber == 0) ;
+        } while (startPoint < issuesNumber ) ;
+
+        file.close();
         try {
             if(!issuesKeys.isEmpty() && !ticketsCreationDate.isEmpty() && !ticketsResolutionDate.isEmpty())
             {
-                System.out.println(projectName.toUpperCase()+" issue tickets acquired");
+                System.out.println("\n---------------------------------------------------------------------------");
+                System.out.println("\n"+projectName.toUpperCase()+" issue tickets acquired");
                 for(int i=0; i< issuesKeys.size();i++){
                     BugTicket bugTicket = new BugTicket(issuesKeys.get(i), ticketsCreationDate.get(i), ticketsResolutionDate.get(i), affectedVersion.get(i));
                     bugTickets.add(bugTicket);
                 }
-            }
+
+            } else  {throw new Exception("Error during ticket acquisition");}
         }catch (Exception e){
-            System.out.println("Somethings went wrong issue tickets acquisition");
+            System.out.println("Somethings went wrong with issue tickets acquisition");
         }
+
         return bugTickets;
     }
 
@@ -154,14 +157,23 @@ public class JiraRetriever {
         }
     }
 
-    private void parseAffectedVersion(ArrayList<String> affectedVersion, JSONArray jsonArray){
+    private void parseAffectedVersion(ArrayList<String> affectedVersion, JSONArray jsonArray, List<VersionInfo> versionInfoList ){
+        //TODO check why affected version are 2 less then the other during parsing
+        VersionInfo mapGenerator = new VersionInfo();
+        Map<String,Integer> versionMap = mapGenerator.getVersionInteger(versionInfoList);
 
         for (int i =0; i < jsonArray.length(); i++){
             JSONObject fields = (JSONObject) jsonArray.getJSONObject(i).get("fields");
             JSONArray versionArray = (JSONArray) fields.get("versions");
-            if( versionArray.length() != 0){
-                affectedVersion.add(versionArray.getJSONObject(0).get("name").toString());
-            }else{
+            if( versionArray.length() != 0) {
+                if (versionMap.containsKey(versionArray.getJSONObject(0).get("name").toString())){
+                    affectedVersion.add(versionArray.getJSONObject(0).get("name").toString());
+                }
+                else
+                    affectedVersion.add("NULL");
+
+            }
+            else{
                 affectedVersion.add("NULL");
             }
         }
