@@ -17,6 +17,8 @@ import static java.lang.Integer.parseInt;
 
 public class JiraRetriever {
 
+    //todo commenta tutti i metodi con il loro scopo
+    /*This method return a list that contains all bug tickets from jira*/
     public List<BugTicket> retrieveBugTicket(String projectName ,List<VersionInfo> versionInfoList ) throws IOException, URISyntaxException {
         List<BugTicket> bugTickets = new ArrayList<>();
         URLBuilder urlBuilder = new URLBuilder() ;
@@ -158,7 +160,6 @@ public class JiraRetriever {
     }
 
     private void parseAffectedVersion(ArrayList<String> affectedVersion, JSONArray jsonArray, List<VersionInfo> versionInfoList ){
-        //TODO check why affected version are 2 less then the other during parsing
         VersionInfo mapGenerator = new VersionInfo();
         Map<String,Integer> versionMap = mapGenerator.getVersionInteger(versionInfoList);
 
