@@ -30,7 +30,7 @@ public class Main {
         //Retrieve commits form git for each ticket
         CommitRetriever commitRetriever = new CommitRetriever() ;
         List<RevCommit> commitList = commitRetriever.retrieveAllCommitsInfo(repoPath + project_name, project_name);
-        Map<String, ArrayList<RevCommit>> ticketAndAssociatedCommit = commitRetriever.retrieveCommitFromTickets(bugTicketsKeys, commitList);
+        commitRetriever.retrieveCommitFromTickets(bugTickets, commitList);
 
 
 

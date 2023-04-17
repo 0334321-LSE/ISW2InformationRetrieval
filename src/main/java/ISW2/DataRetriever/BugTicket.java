@@ -1,6 +1,6 @@
 package ISW2.DataRetriever;
 
-import org.jetbrains.annotations.NotNull;
+import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -11,7 +11,7 @@ public class BugTicket {
 
     }
 
-    public BugTicket(String issueKey, LocalDate ticketsCreationDate, LocalDate ticketsResolutionDate, String injectedVersion){
+    public BugTicket(String issueKey, LocalDate ticketsCreationDate, LocalDate ticketsResolutionDate, VersionInfo injectedVersion){
         this.issueKeys = issueKey;
         this.ticketsCreationDate = ticketsCreationDate;
         this.ticketsResolutionDate = ticketsResolutionDate;
@@ -21,61 +21,81 @@ public class BugTicket {
     private  String issueKeys;
     private  LocalDate ticketsCreationDate;
     private  LocalDate ticketsResolutionDate;
-    private String injectedVersion;
+    private VersionInfo injectedVersion;
 
-    private  String openingVersion;
+    private  VersionInfo openingVersion;
 
-    private  String fixedVersion;
+    private  VersionInfo fixedVersion;
 
-    void setInjectedVersion(String injectedVersion){
+    private ArrayList<RevCommit> associatedCommit;
+
+    void setInjectedVersion(VersionInfo injectedVersion){
         this.injectedVersion= injectedVersion;
     }
-    private void setOpeningVersion(String openingVersion){
+    private void setOpeningVersion(VersionInfo openingVersion){
         this.openingVersion= openingVersion;
     }
-    private void setFixedVersion(String fixedVersion){
+    private void setFixedVersion(VersionInfo fixedVersion){
         this.fixedVersion= fixedVersion;
+    }
+
+    public void setAssociatedCommit(ArrayList<RevCommit> associatedCommit) {
+        this.associatedCommit = associatedCommit;
     }
 
     public void setVersionInfo(List<BugTicket> bugTickets, List<VersionInfo> versionInfoList){
 
         for (BugTicket bugTicket : bugTickets) {
 
-            bugTicket.setOpeningVersion(bugTicket.getTicketOpeningVersion(versionInfoList));
-            bugTicket.setFixedVersion(bugTicket.getTicketFixedVersion(versionInfoList));
+            bugTicket.setOpeningVersion(bugTicket.getOvFromCreationDate(versionInfoList));
+            bugTicket.setFixedVersion(bugTicket.getFvFromResolutionDate(versionInfoList));
             bugTicket.setInjectedVersion(bugTicket.getInjectedVersion());
 
         }
 
     }
 
-    private String getTicketOpeningVersion(List<VersionInfo> versionInfoList){
+    /** Return the ticket correct opening version from opening date*/
+    private VersionInfo getOvFromCreationDate(List<VersionInfo> versionInfoList){
         int i =0, flag =0;
-        String openingVersion = "";
-        for (i=0; i< versionInfoList.size() && flag==0; i++){
+        VersionInfo openingVersion = new VersionInfo();
 
+        for (i=0; i< versionInfoList.size() && flag==0; i++){
             if (this.getTicketsCreationDate().isBefore(versionInfoList.get(i).getVersionDate())) {
                 flag = 1;
-                openingVersion = versionInfoList.get(i).getVersionName();
-            }else openingVersion ="NULL";
+                openingVersion = versionInfoList.get(i);
+            }
+        }
+        if(flag == 0){
+            //if it comes here there isn't a valid OV, it may happen with not closed project
+            //add the first version ( the NULL one )
+            openingVersion = versionInfoList.get(0);
         }
 
         return openingVersion;
     }
 
-    private String getTicketFixedVersion(List<VersionInfo> versionInfoList){
-        int i =0, flag =0;
-        String fixedVersion = "";
+    /** Return the ticket correct fixed version from resolution date*/
+    private VersionInfo getFvFromResolutionDate(List<VersionInfo> versionInfoList){
+        int i, flag =0;
+        VersionInfo fixedVersion =  new VersionInfo();
         for (i=0; i< versionInfoList.size() && flag==0; i++){
             if (this.getTicketsResolutionDate().isBefore(versionInfoList.get(i).getVersionDate())){
                 flag=1;
-                fixedVersion = versionInfoList.get(i).getVersionName();
-            }else fixedVersion ="NULL";
+                fixedVersion = versionInfoList.get(i);
+            }
         }
-
+        if(flag == 0){
+            //if it comes here there isn't a valid FV, it may happen with not closed project
+            //add the first version ( the NULL one )
+            fixedVersion = versionInfoList.get(0);
+        }
         return fixedVersion;
     }
 
+    public ArrayList<RevCommit> getAssociatedCommit() {
+        return associatedCommit;
+    }
 
     private void printVersionInformation(){
         System.out.println("\n---------------------------------------------------------------------------");
@@ -102,11 +122,11 @@ public class BugTicket {
         return this.ticketsResolutionDate;
     }
 
-    public String getOpeningVersion(){ return this.openingVersion;}
+    public VersionInfo getOpeningVersion(){ return this.openingVersion;}
 
-    public String getFixedVersion(){ return this.fixedVersion;}
+    public VersionInfo getFixedVersion(){ return this.fixedVersion;}
 
-    public String getInjectedVersion(){ return this.injectedVersion;}
+    public VersionInfo getInjectedVersion(){ return this.injectedVersion;}
 
 
 

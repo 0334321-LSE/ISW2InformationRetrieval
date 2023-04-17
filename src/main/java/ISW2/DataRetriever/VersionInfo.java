@@ -10,14 +10,24 @@ public class VersionInfo {
     private String versionName ;
     private LocalDate versionDate ;
     private String versionId ;
+    private int versionInt;
 
     public VersionInfo(){
     }
 
-    public VersionInfo(String versionName, LocalDate versionDate, String versionId) {
+    public VersionInfo(String versionName, LocalDate versionDate, String versionId, int versionInt) {
         this.versionName = versionName ;
         this.versionDate = versionDate ;
         this.versionId = versionId ;
+        this.versionInt = versionInt;
+    }
+
+    public int getVersionInt() {
+        return versionInt;
+    }
+
+    public void setVersionInt(int versionInt) {
+        this.versionInt = versionInt;
     }
 
     public LocalDate getVersionDate() {
@@ -41,6 +51,15 @@ public class VersionInfo {
         System.out.print("| Name: "+this.versionName);
         System.out.print(" | Date: "+this.versionDate);
         System.out.print(" | ID: "+this.versionId+" |");
+    }
+
+    public static VersionInfo getVersionInfoFromName (String name, List<VersionInfo> list){
+            for (VersionInfo version: list){
+                if( version.getVersionName().equals(name))
+                    return version;
+            }
+            //if it doesn't find anything return null version
+            return list.get(0);
     }
 
     public Map<String, Integer> getVersionInteger(List<VersionInfo> versionInfoList){

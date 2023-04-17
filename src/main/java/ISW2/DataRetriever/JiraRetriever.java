@@ -1,5 +1,6 @@
 package ISW2.DataRetriever;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -18,7 +19,7 @@ import static java.lang.Integer.parseInt;
 public class JiraRetriever {
 
     //todo commenta tutti i metodi con il loro scopo
-    /*This method return a list that contains all bug tickets from jira*/
+    /** This method return a list that contains all bug tickets from jira*/
     public List<BugTicket> retrieveBugTicket(String projectName ,List<VersionInfo> versionInfoList ) throws IOException, URISyntaxException {
         List<BugTicket> bugTickets = new ArrayList<>();
         URLBuilder urlBuilder = new URLBuilder() ;
@@ -65,8 +66,11 @@ public class JiraRetriever {
             {
                 System.out.println("\n---------------------------------------------------------------------------");
                 System.out.println("\n"+projectName.toUpperCase()+" issue tickets acquired");
+                VersionInfo affectedV = new VersionInfo();
+
                 for(int i=0; i< issuesKeys.size();i++){
-                    BugTicket bugTicket = new BugTicket(issuesKeys.get(i), ticketsCreationDate.get(i), ticketsResolutionDate.get(i), affectedVersion.get(i));
+                    affectedV = VersionInfo.getVersionInfoFromName(affectedVersion.get(i),versionInfoList);
+                    BugTicket bugTicket = new BugTicket(issuesKeys.get(i), ticketsCreationDate.get(i), ticketsResolutionDate.get(i), affectedV);
                     bugTickets.add(bugTicket);
                 }
 
@@ -78,6 +82,11 @@ public class JiraRetriever {
         return bugTickets;
     }
 
+
+
+/**
+    Obtains all the existing version of the project from jira
+*/
     public List<VersionInfo> retrieveVersions(String projectName) throws URISyntaxException, IOException {
         String urlString = "https://issues.apache.org/jira/rest/api/2/project/" + projectName.toUpperCase();
         URI uri = new URI(urlString);
@@ -98,17 +107,19 @@ public class JiraRetriever {
                 versionId = jsonVersionArray.getJSONObject(i).get("id").toString() ;
 
                 LocalDate versionDate = LocalDate.parse(dateString) ;
-                VersionInfo versionInfo = new VersionInfo(versionName, versionDate, versionId) ;
+                VersionInfo versionInfo = new VersionInfo(versionName, versionDate, versionId, i+1) ;
                 versionInfoList.add(versionInfo) ;
             }
         }
-
+        LocalDate nullVersionDate = LocalDate.parse("1980-05-17");
+        versionInfoList.add( new VersionInfo("NULL",nullVersionDate,"nullversion",0));
         versionInfoList.sort(Comparator.comparing(VersionInfo::getVersionDate));
 
         return versionInfoList ;
     }
 
-    public List<String> getIssueKeyList(List<BugTicket> bugTicketsList){
+    /** Return issues key in a list*/
+    public List<String> getIssueKeyList(@NotNull List<BugTicket> bugTicketsList){
         List<String> issueKeyList = new ArrayList<>();
         for (BugTicket bugTicket: bugTicketsList){
             issueKeyList.add(bugTicket.getIssueKey());
@@ -116,7 +127,7 @@ public class JiraRetriever {
         return issueKeyList;
     }
 
-
+    /** Return String from the contacted url */
     private String getJsonString(URL url) throws IOException {
         try (InputStream urlInput = url.openStream()) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(urlInput)) ;
@@ -131,12 +142,14 @@ public class JiraRetriever {
         }
     }
 
+    /** Obtains issueKeys from json Array*/
     private void parseIssuesArray(ArrayList<String> issuesKeys, JSONArray jsonArray) {
         for (int i = 0 ; i < jsonArray.length() ; i++) {
             issuesKeys.add(jsonArray.getJSONObject(i).get("key").toString()) ;
         }
     }
 
+    /** Obtains creationDate from json Array*/
     private void parseCreationDate(ArrayList<LocalDate> ticketsCreationDate, JSONArray jsonArray){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-d");
         for (int i = 0 ; i < jsonArray.length() ; i++) {
@@ -148,6 +161,7 @@ public class JiraRetriever {
         }
     }
 
+    /** Obtains resolutionDate from json Array*/
     private void parseResolutionDate(ArrayList<LocalDate> ticketsResolutionDate, JSONArray jsonArray){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-d");
         for (int i = 0 ; i < jsonArray.length() ; i++) {
@@ -159,6 +173,7 @@ public class JiraRetriever {
         }
     }
 
+   /** Obtains affectedVersion from json Array*/
     private void parseAffectedVersion(ArrayList<String> affectedVersion, JSONArray jsonArray, List<VersionInfo> versionInfoList ){
         VersionInfo mapGenerator = new VersionInfo();
         Map<String,Integer> versionMap = mapGenerator.getVersionInteger(versionInfoList);

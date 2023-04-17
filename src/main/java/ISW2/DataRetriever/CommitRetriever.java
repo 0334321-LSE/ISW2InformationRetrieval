@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 
 public class CommitRetriever {
 
+    /** Retrieve all commits from repository local clone*/
     public List<RevCommit> retrieveAllCommitsInfo(String repoPath, String projectName) throws IOException, GitAPIException {
         RepositoryBuilder repositoryBuilder = new RepositoryBuilder();
         Repository repo = repositoryBuilder.setGitDir(new File(repoPath + "/.git")).build() ;
@@ -38,53 +39,41 @@ public class CommitRetriever {
         return revCommitList ;
     }
 
+    /** Add to bug tickets associated commits and then discard ticket without any commit*/
+    public void retrieveCommitFromTickets(List<BugTicket> bugTicketList, List<RevCommit> commitList) {
 
-    public Map<String, ArrayList<RevCommit>> retrieveCommitFromTickets(List<String> ticketsIDs, List<RevCommit> commitList) throws GitAPIException, IOException {
-
-        Map<String, ArrayList<RevCommit>> ticketMap = new LinkedHashMap<>();
-        for (String ticketID : ticketsIDs) {
-            ticketMap.put(ticketID, new ArrayList<>());
+        for (BugTicket bugTicket: bugTicketList){
+            bugTicket.setAssociatedCommit(matchTicketIssueIDCommit(commitList,bugTicket.getIssueKey()));
         }
 
-        for (RevCommit commit : commitList) {
-            String commitTicket = matchTicketAndCommit(commit.getFullMessage(), ticketsIDs);
-            if (commitTicket.compareTo("") != 0) {
-                ticketMap.get(commitTicket).add(commit);
-            }
-        }
-        try {
-            if (!ticketMap.isEmpty())
-                System.out.println("\nFound commits associated to tickets");
-        } catch(Exception e) {
-            System.out.println("\nSomethings went wrong with during the ticket-commit matching");
-        }
-        discardTicketWithoutCommit(ticketMap);
-        System.out.println("\nValid ticket with associated commits are: "+ticketMap.size());
-        System.out.println("\nRemaining commits are: "+countRemainingCommit(ticketMap));
-        return ticketMap ;
+        discardTicketWithoutCommit(bugTicketList);
+        System.out.println("\nValid ticket with associated commits are: "+bugTicketList.size());
+        System.out.println("\nRemaining commits are: "+countCommit(bugTicketList));
+
     }
 
-
-    private int countRemainingCommit(Map<String, ArrayList<RevCommit>> ticketMap){
-        List<String> mapKeyList = new ArrayList<>(ticketMap.keySet());
-        int counter =0;
-        for(String key: mapKeyList){
-            counter+=ticketMap.get(key).size();
+    /** From ticketIssueID retrieve associated commit*/
+    private ArrayList<RevCommit> matchTicketIssueIDCommit(List<RevCommit> commitList,String BugTicketID) {
+        ArrayList<RevCommit> associatedCommitList = new ArrayList<>();
+        for(RevCommit commit: commitList){
+            if (commit.getFullMessage().contains(BugTicketID))
+                associatedCommitList.add(commit);
         }
+        return associatedCommitList;
+    }
+
+    /** Count the number of commit*/
+    private int countCommit(List<BugTicket> bugTicketList){
+        int counter=0;
+        for( BugTicket bugTicket: bugTicketList)
+            counter += bugTicket.getAssociatedCommit().size();
         return counter;
     }
 
-    private String matchTicketAndCommit(String commitMessage, List<String> ticketsIDs) {
-        for (String ticketID : ticketsIDs) {
-            if (commitMessage.contains(ticketID)) {
-                return ticketID ;
-            }
-        }
-        return "" ;
-    }
+
 
     private void saveAllCommitsOnJSON(List<RevCommit> commitList, String projectName ) throws IOException {
-        FileWriter file = new FileWriter("./projectsCommits"+projectName+"Commits.json");
+        FileWriter file = new FileWriter("./projectsCommits/"+projectName+"Commits.json");
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("ProjectName", projectName);
         JSONArray jsonArray = new JSONArray();
@@ -104,11 +93,7 @@ public class CommitRetriever {
         file.close();
     }
 
-    private void discardTicketWithoutCommit(Map<String, ArrayList<RevCommit>> ticketMap){
-        List<String> keyList = new ArrayList<>(ticketMap.keySet());
-        for(int i=0; i< ticketMap.size(); i++){
-            if (ticketMap.get(keyList.get(i)).size() == 0)
-                ticketMap.remove(keyList.get(i));
-        }
+    private void discardTicketWithoutCommit(List<BugTicket> bugTicketList){
+        bugTicketList.removeIf(bugTicket-> bugTicket.getAssociatedCommit().size()==0);
     }
 }
