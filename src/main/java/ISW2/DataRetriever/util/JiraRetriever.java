@@ -1,5 +1,7 @@
-package ISW2.DataRetriever;
+package ISW2.DataRetriever.util;
 
+import ISW2.DataRetriever.model.BugTicket;
+import ISW2.DataRetriever.model.VersionInfo;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -11,8 +13,6 @@ import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static java.lang.Integer.parseInt;
 
@@ -20,7 +20,7 @@ public class JiraRetriever {
 
     //todo commenta tutti i metodi con il loro scopo
     /** This method return a list that contains all bug tickets from jira*/
-    public List<BugTicket> retrieveBugTicket(String projectName ,List<VersionInfo> versionInfoList ) throws IOException, URISyntaxException {
+    public List<BugTicket> retrieveBugTicket(String projectName , List<VersionInfo> versionInfoList ) throws IOException, URISyntaxException {
         List<BugTicket> bugTickets = new ArrayList<>();
         URLBuilder urlBuilder = new URLBuilder() ;
         String urlFirstPart = urlBuilder.buildUrl(projectName) ;

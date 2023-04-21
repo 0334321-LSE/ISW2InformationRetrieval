@@ -1,4 +1,4 @@
-package ISW2.DataRetriever;
+package ISW2.DataRetriever.util;
 
 import org.json.JSONArray;
 

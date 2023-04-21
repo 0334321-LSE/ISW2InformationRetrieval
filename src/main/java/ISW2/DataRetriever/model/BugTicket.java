@@ -1,4 +1,4 @@
-package ISW2.DataRetriever;
+package ISW2.DataRetriever.model;
 
 import org.eclipse.jgit.revwalk.RevCommit;
 
@@ -26,20 +26,19 @@ public class BugTicket {
     private  VersionInfo openingVersion;
 
     private  VersionInfo fixedVersion;
+    private ArrayList<RevCommit> associatedCommit;
 
     public void setTicketsCreationDate(LocalDate ticketsCreationDate) {
         this.ticketsCreationDate = ticketsCreationDate;
     }
 
-    private ArrayList<RevCommit> associatedCommit;
-
-    void setInjectedVersion(VersionInfo injectedVersion){
+    public void setInjectedVersion(VersionInfo injectedVersion){
         this.injectedVersion= injectedVersion;
     }
-    private void setOpeningVersion(VersionInfo openingVersion){
+    public void setOpeningVersion(VersionInfo openingVersion){
         this.openingVersion= openingVersion;
     }
-    private void setFixedVersion(VersionInfo fixedVersion){
+    public void setFixedVersion(VersionInfo fixedVersion){
         this.fixedVersion= fixedVersion;
     }
 

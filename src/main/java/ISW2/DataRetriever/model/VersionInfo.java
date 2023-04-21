@@ -1,4 +1,4 @@
-package ISW2.DataRetriever;
+package ISW2.DataRetriever.model;
 
 import java.time.LocalDate;
 import java.util.LinkedHashMap;

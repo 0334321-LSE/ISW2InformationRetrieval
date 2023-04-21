@@ -1,5 +1,13 @@
 package ISW2.DataRetriever;
 
+import ISW2.DataRetriever.control.Proportion;
+import ISW2.DataRetriever.model.BugTicket;
+import ISW2.DataRetriever.model.ClassInfo;
+import ISW2.DataRetriever.model.CommitInfo;
+import ISW2.DataRetriever.model.VersionInfo;
+import ISW2.DataRetriever.util.ClassInfoRetriever;
+import ISW2.DataRetriever.util.CommitRetriever;
+import ISW2.DataRetriever.util.JiraRetriever;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 

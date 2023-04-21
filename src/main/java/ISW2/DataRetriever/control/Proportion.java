@@ -1,13 +1,14 @@
-package ISW2.DataRetriever;
+package ISW2.DataRetriever.control;
 
+import ISW2.DataRetriever.model.BugTicket;
+import ISW2.DataRetriever.model.VersionInfo;
+import ISW2.DataRetriever.util.JiraRetriever;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.rmi.Remote;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 
 public class Proportion {

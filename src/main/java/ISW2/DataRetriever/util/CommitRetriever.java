@@ -1,13 +1,12 @@
-package ISW2.DataRetriever;
+package ISW2.DataRetriever.util;
 
+import ISW2.DataRetriever.model.BugTicket;
+import ISW2.DataRetriever.model.CommitInfo;
+import ISW2.DataRetriever.model.VersionInfo;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ListBranchCommand;
-import org.eclipse.jgit.api.LogCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.treewalk.TreeWalk;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -19,12 +18,10 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static ISW2.DataRetriever.CommitInfo.getCommitsOfVersion;
+import static ISW2.DataRetriever.model.CommitInfo.getCommitsOfVersion;
 
 public class CommitRetriever {
 

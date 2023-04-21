@@ -1,5 +1,9 @@
-package ISW2.DataRetriever;
+package ISW2.DataRetriever.util;
 
+import ISW2.DataRetriever.model.BugTicket;
+import ISW2.DataRetriever.model.ClassInfo;
+import ISW2.DataRetriever.model.CommitInfo;
+import ISW2.DataRetriever.model.VersionInfo;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -19,8 +23,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static ISW2.DataRetriever.ClassInfo.updateJavaClassBuggyness;
-import static ISW2.DataRetriever.CommitInfo.getVersionOfCommit;
+import static ISW2.DataRetriever.model.ClassInfo.updateJavaClassBuggyness;
+import static ISW2.DataRetriever.model.CommitInfo.getVersionOfCommit;
 
 public class ClassInfoRetriever {
 

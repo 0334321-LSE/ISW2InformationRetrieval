@@ -1,0 +1,20 @@
+1) Come injected version è stata scelta la prima tra le versioni
+presenti nelle affected version (laddove presenti).
+
+2)Per i ticket in cui non era presente l’injected version si è provveduto a calolare il
+coefficiente di proportion P = (FV-IV)/(FV-OV) e a ricavarla grazie ad esso.
+
+3)Come opening version è stata scelta la prima versione successiva alla creation date del ticket
+
+4)Come fixed version è stata scelta la prima versione successiva alla resolution date del ticket.
+
+5)Il ticket 859 di BOOKEEPER è stato creato lo stesso giorno in cui è uscita la versione 4.4.0,
+come assunzione si è scelto di scegliere la versione successiva.
+
+6)Quando l’iv calcolato tramite proportion è <=1, come nel caso di BOOKKEEPER – 24
+viene settata come fixed version la prima.
+
+7)Alcuni ticket presentano delle version non esistenti tra quelle elencate in Jira, questo capita soprattutto per i progetti ancora aperti.
+In tal caso si è scelto di settare la injected version come NULL e di scartarli in caso accadesse con la  opening e la fixed version.
+
+
