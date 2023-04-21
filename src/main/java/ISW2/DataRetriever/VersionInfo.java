@@ -72,4 +72,8 @@ public class VersionInfo {
         }
         return versionMap;
     }
+
+    public static VersionInfo getLastVersion (List<VersionInfo> versionInfoList){
+        return versionInfoList.get(versionInfoList.size()-1);
+    }
 }

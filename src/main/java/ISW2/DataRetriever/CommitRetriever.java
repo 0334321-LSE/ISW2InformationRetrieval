@@ -1,12 +1,10 @@
 package ISW2.DataRetriever;
 
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.LogCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.PersonIdent;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.lib.RepositoryBuilder;
+import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.TreeWalk;
@@ -16,24 +14,36 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static ISW2.DataRetriever.CommitInfo.getCommitsOfVersion;
 
 public class CommitRetriever {
 
-    /** Retrieve all commits from repository local clone*/
+    /** Retrieve all commits from all branches*/
     public List<RevCommit> retrieveAllCommitsInfo(String repoPath, String projectName) throws IOException, GitAPIException {
         RepositoryBuilder repositoryBuilder = new RepositoryBuilder();
         Repository repo = repositoryBuilder.setGitDir(new File(repoPath + "/.git")).build() ;
         Git git = new Git(repo) ;
-        LogCommand logCommand = git.log() ;
-        Iterable<RevCommit> commitIterable = logCommand.call() ;
-
         List<RevCommit> revCommitList = new ArrayList<>() ;
-        for (RevCommit commit : commitIterable) {
-            revCommitList.add(commit) ;
-        }
+        //TODO to get all branches
+        //List<Ref> branchesList = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
+        //for (Ref branch : branchesList) {
+        //Iterable<RevCommit> commitsListIterable = git.log().add(repo.resolve(branch.getName())).call();
+        Iterable<RevCommit> commitsListIterable = git.log().call();
+
+        for (RevCommit commit : commitsListIterable) {
+                revCommitList.add(commit);
+            }
+        //}
         revCommitList.sort(Comparator.comparingLong(o -> o.getAuthorIdent().getWhen().getTime()));
         saveAllCommitsOnJSON(revCommitList, projectName);
         return revCommitList ;
@@ -47,6 +57,7 @@ public class CommitRetriever {
         }
 
         discardTicketWithoutCommit(bugTicketList);
+        //getRemainingCommits(bugTicketList,commitList);
         System.out.println("\nValid ticket with associated commits are: "+bugTicketList.size());
         System.out.println("\nRemaining commits are: "+countCommit(bugTicketList));
 
@@ -55,12 +66,44 @@ public class CommitRetriever {
     /** From ticketIssueID retrieve associated commit*/
     private ArrayList<RevCommit> matchTicketIssueIDCommit(List<RevCommit> commitList,String BugTicketID) {
         ArrayList<RevCommit> associatedCommitList = new ArrayList<>();
+        //Pattern pattern = Pattern.compile(".*" + BugTicketID + "+[^0-9].*") ;
+        //Pattern pattern = Pattern.compile("\\b"+BugTicketID+"\\b");
+        Pattern pattern = Pattern.compile( BugTicketID + "+[^0-9]") ;
+
         for(RevCommit commit: commitList){
-            if (commit.getFullMessage().contains(BugTicketID))
+            //TODO HERE REGULAR EXPRESSION
+            String commitMessage = commit.getFullMessage() ;
+            Matcher matcher = pattern.matcher(commitMessage) ;
+            if (matcher.find())
                 associatedCommitList.add(commit);
         }
         return associatedCommitList;
     }
+
+    /** Returns a list of CommitInfo that associates a version with all the commits to it related,
+     * and specifies the last commit in temporal order*/
+    public List<CommitInfo> getVersionAndCommitsAssociations(List<RevCommit> allCommitsList, List<VersionInfo> versionInfoList) throws ParseException {
+
+        List<CommitInfo> CommitsAssociatedWithVersion = new ArrayList<>();
+
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        //firstDate is the date of the previous release; for the first release we take 01/01/1900 as lower bound
+        LocalDate firstDate = formatter.parse("1900-01-01").toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+        for(VersionInfo versionInfo : versionInfoList) {
+            //Skip the NULL version
+            if(versionInfo.getVersionName().equals("NULL"))
+                continue;
+            CommitsAssociatedWithVersion.add(getCommitsOfVersion(allCommitsList, versionInfo, firstDate));
+            firstDate = versionInfo.getVersionDate();
+        }
+        //Remove if that version doesn't have commits
+        CommitsAssociatedWithVersion.removeIf(commitInfo -> commitInfo.getCommitList().size()==0 );
+
+        return CommitsAssociatedWithVersion;
+
+    }
+
 
     /** Count the number of commit*/
     private int countCommit(List<BugTicket> bugTicketList){
@@ -69,8 +112,6 @@ public class CommitRetriever {
             counter += bugTicket.getAssociatedCommit().size();
         return counter;
     }
-
-
 
     private void saveAllCommitsOnJSON(List<RevCommit> commitList, String projectName ) throws IOException {
         FileWriter file = new FileWriter("./projectsCommits/"+projectName+"Commits.json");
@@ -93,7 +134,16 @@ public class CommitRetriever {
         file.close();
     }
 
-    private void discardTicketWithoutCommit(List<BugTicket> bugTicketList){
+    private static void discardTicketWithoutCommit(List<BugTicket> bugTicketList){
         bugTicketList.removeIf(bugTicket-> bugTicket.getAssociatedCommit().size()==0);
+    }
+
+    public void getRemainingCommits(List<BugTicket> bugTicketList, List<RevCommit> commitList) {
+        List<RevCommit> remainingCommit = new ArrayList<>();
+        for (BugTicket bugTicket: bugTicketList){
+            remainingCommit.addAll(bugTicket.getAssociatedCommit());
+        }
+        commitList.removeAll(commitList);
+        commitList.addAll(remainingCommit);
     }
 }

@@ -5,17 +5,16 @@ import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.text.ParseException;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException, URISyntaxException, GitAPIException {
+    public static void main(String[] args) throws IOException, URISyntaxException, GitAPIException, ParseException {
         findProjectData("bookkeeper");
     }
 
-    private static void findProjectData(String project_name) throws URISyntaxException, IOException, GitAPIException {
+    private static void findProjectData(String project_name) throws URISyntaxException, IOException, GitAPIException, ParseException {
         String repoPath = "C:\\Users\\39388\\OneDrive\\Desktop\\ISW2\\Projects\\GitRepository\\" ;
 
         //Retrieve info from JIRA and execute proportion
@@ -29,9 +28,15 @@ public class Main {
 
         //Retrieve commits form git for each ticket
         CommitRetriever commitRetriever = new CommitRetriever() ;
-        List<RevCommit> commitList = commitRetriever.retrieveAllCommitsInfo(repoPath + project_name, project_name);
-        commitRetriever.retrieveCommitFromTickets(bugTickets, commitList);
-
+        List<RevCommit> allCommitsList = commitRetriever.retrieveAllCommitsInfo(repoPath + project_name, project_name);
+        commitRetriever.retrieveCommitFromTickets(bugTickets, allCommitsList);
+        //TODO is necessary to match ALL the commits to the version not only the right one
+        //For each version, add the list of all commits of that version
+        List<CommitInfo> commitInfo = commitRetriever.getVersionAndCommitsAssociations(allCommitsList,versionInfoList);
+        ClassInfoRetriever classInfoRetriever = new ClassInfoRetriever(repoPath + project_name,versionInfoList,bugTickets);
+        classInfoRetriever.getVersionAndClassAssociation(commitInfo);
+        //
+        List<ClassInfo> javaClassesList = classInfoRetriever.labelClasses(commitInfo);
 
 
         System.out.println("\n\nGoodbye");

@@ -21,11 +21,15 @@ public class BugTicket {
     private  String issueKeys;
     private  LocalDate ticketsCreationDate;
     private  LocalDate ticketsResolutionDate;
-    private VersionInfo injectedVersion;
+    private  VersionInfo injectedVersion;
 
     private  VersionInfo openingVersion;
 
     private  VersionInfo fixedVersion;
+
+    public void setTicketsCreationDate(LocalDate ticketsCreationDate) {
+        this.ticketsCreationDate = ticketsCreationDate;
+    }
 
     private ArrayList<RevCommit> associatedCommit;
 

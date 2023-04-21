@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.rmi.Remote;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -39,48 +40,49 @@ public class Proportion {
         //ticketInfoRetriever.printVersionInformationList(bugTickets);
         //System.out.println("\n"+projectName.toUpperCase()+" ticket number: "+bugTickets.size());
 
-        //TODO ask friends why isn't good to remove tickets with OV=IV
-        bugTickets.removeIf(bugTicket-> bugTicket.getOpeningVersion().equals(bugTicket.getInjectedVersion()));
+        // I discard the invalid tickets after the end of proportion
+        discardInvalidTicket(bugTickets,versionInfoList);
     }
-    //TODO if u want add index attribute to version info to eliminate map
+
+    /** Discard malformed ticket */
+   private static void discardInvalidTicket(List<BugTicket> bugTicketsList, List<VersionInfo> versionInfoList){
+       //RemoveIF
+       bugTicketsList.removeIf(bugTicket-> bugTicket.getTicketsCreationDate().isBefore(versionInfoList.get(0).getVersionDate()));
+       //RemoveIF there are some tickets without OV or FV
+       bugTicketsList.removeIf(bugTicket -> bugTicket.getOpeningVersion().getVersionName().equals("NULL") || bugTicket.getFixedVersion().getVersionName().equals("NULL"));
+       //RemoveIF there are some tickets with FV == OV == First Version
+       bugTicketsList.removeIf(bugTicket-> bugTicket.getOpeningVersion().getVersionName().equals(versionInfoList.get(0).getVersionName()) && bugTicket.getFixedVersion().getVersionName().equals(versionInfoList.get(0).getVersionName()));
+       //RemoveIF IV >= OV
+       bugTicketsList.removeIf(bugTicket->bugTicket.getInjectedVersion().getVersionInt() >= bugTicket.getOpeningVersion().getVersionInt());
+       //RemoveIF IV > FV
+       bugTicketsList.removeIf(bugTicket->bugTicket.getInjectedVersion().getVersionInt() > bugTicket.getFixedVersion().getVersionInt());
+       //RemoveIF OV > FV
+       bugTicketsList.removeIf(bugTicket->bugTicket.getOpeningVersion().getVersionInt() > bugTicket.getFixedVersion().getVersionInt());
+
+   }
 
     /** Drop tickets not usefully for proportion  */
     private static List<BugTicket> correctBugTicketListForProportioning(List<BugTicket> bugTicketsList, List<VersionInfo> versionInfoList){
 
-        //RemoveIF there are some tickets without OV or FV
-        bugTicketsList.removeIf(bugTicket -> bugTicket.getOpeningVersion().getVersionName().equals("NULL") || bugTicket.getFixedVersion().getVersionName().equals("NULL"));
-        //RemoveIF there are some tickets with IV == OV == First Version
-        //bugTicketsList.removeIf(bugTicket-> bugTicket.getOpeningVersion().getVersionName().equals(versionInfoList.get(0).getVersionName()));
-        List<BugTicket> correctBugTicketList =  new ArrayList<>(bugTicketsList);
+        List<BugTicket> BugTicketListForProportion =  new ArrayList<>(bugTicketsList);
+        //Zeroth control, remove if IV is null
+        BugTicketListForProportion.removeIf(bugTicketProp->bugTicketProp.getInjectedVersion().getVersionName().equals("NULL"));
+        //First control, cut off tickets which have IV >= OV
+        BugTicketListForProportion.removeIf(bugTicketProp->bugTicketProp.getInjectedVersion().getVersionInt() >= bugTicketProp.getOpeningVersion().getVersionInt());
+        //Second control, cut off tickets which have IV>= FV
+        BugTicketListForProportion.removeIf(bugTicketProp->bugTicketProp.getInjectedVersion().getVersionInt() >= bugTicketProp.getFixedVersion().getVersionInt());
+        //Third control, cut off tickets which have OV>= FV
+        BugTicketListForProportion.removeIf(bugTicketProp->bugTicketProp.getOpeningVersion().getVersionInt() >= bugTicketProp.getFixedVersion().getVersionInt());
+        //Fourth control, cut off tickets which have IV = OV = FV
+        BugTicketListForProportion.removeIf(bugTicketProp->bugTicketProp.getOpeningVersion().getVersionInt() == bugTicketProp.getFixedVersion().getVersionInt() && bugTicketProp.getInjectedVersion().getVersionInt() == bugTicketProp.getFixedVersion().getVersionInt());
 
-        for ( BugTicket bugTicket: bugTicketsList){
-            if ( bugTicket.getInjectedVersion().getVersionName().equals("NULL"))
-                correctBugTicketList.remove(bugTicket);
-
-            else if ( bugTicket.getInjectedVersion().getVersionInt() >= bugTicket.getOpeningVersion().getVersionInt())
-                //First control, cut off tickets which have IV > OV
-                correctBugTicketList.remove(bugTicket);
-
-            else if ( bugTicket.getInjectedVersion().getVersionInt() >= bugTicket.getFixedVersion().getVersionInt())
-                //Second control, cut off tickets which have IV>= FV
-                correctBugTicketList.remove(bugTicket);
-
-            else if (bugTicket.getOpeningVersion().getVersionInt() >= bugTicket.getFixedVersion().getVersionInt())
-                //Third control, cut off tickets which have OV> FV
-                correctBugTicketList.remove(bugTicket);
-
-            else if (bugTicket.getInjectedVersion().getVersionName().equals(bugTicket.getOpeningVersion().getVersionName()) && bugTicket.getFixedVersion().getVersionName().equals(bugTicket.getOpeningVersion().getVersionName()))
-                //Fourth control, cut off tickets which have IV = OV = FV
-                correctBugTicketList.remove(bugTicket);
-
-        }
-
-       /* Print to check the but ticket list :
+       /* Print to check the bug ticket list :
         System.out.println("\nBug ticket list for proportioning: ");
         printVersionInformationList(correctBugTicketList);
         System.out.println("\n---------------------------------------------------------------------------");
         System.out.println("\nBug ticket consistency correctly checked; the remain number of ticket is: "+correctBugTicketList.size());
-        */return correctBugTicketList;
+        */
+        return BugTicketListForProportion;
     }
 
     private static double calculateProportioningCoefficient(List<BugTicket> bugTicketsListForProportion, List<VersionInfo> versionInfoList){
@@ -101,8 +103,12 @@ public class Proportion {
         for(BugTicket bugTicket: bugTickets){
 
             if (bugTicket.getInjectedVersion().getVersionName().equals("NULL") ){
-                //Apply proportion: IV= FV-(FV-OV)*P
-                iv = (int) (bugTicket.getFixedVersion().getVersionInt() - ((bugTicket.getFixedVersion().getVersionInt() - (bugTicket.getOpeningVersion().getVersionInt())) * proportionValue));
+                //Apply proportion: IV= FV-(FV-OV)*P IF FV!=OV
+                if( bugTicket.getFixedVersion().getVersionInt() != (bugTicket.getOpeningVersion().getVersionInt()))
+                    iv = (int) (bugTicket.getFixedVersion().getVersionInt() - ((bugTicket.getFixedVersion().getVersionInt() - (bugTicket.getOpeningVersion().getVersionInt())) * proportionValue));
+                    // in this case IV = FV-P
+                else
+                    iv = (int) ( bugTicket.getFixedVersion().getVersionInt() - proportionValue);
                 if (iv <= 1){
                     //If the calculated IV is <= 1, the injected is the first version.
                     bugTicket.setInjectedVersion(versionInfoList.get(1));
@@ -127,7 +133,12 @@ public class Proportion {
 
             if (bugTicket.getInjectedVersion().getVersionName().equals("NULL") ){
                 //Apply proportion: IV= FV-(FV-OV)*P
-                iv = (int) (bugTicket.getFixedVersion().getVersionInt() - ((bugTicket.getFixedVersion().getVersionInt() - (bugTicket.getOpeningVersion().getVersionInt())) * proportionValueFromColdStart));
+                if( bugTicket.getFixedVersion().getVersionInt() != (bugTicket.getOpeningVersion().getVersionInt()))
+                    iv = (int) (bugTicket.getFixedVersion().getVersionInt() - ((bugTicket.getFixedVersion().getVersionInt() - (bugTicket.getOpeningVersion().getVersionInt())) * proportionValueFromColdStart));
+                // in this case IV = FV-P
+                else
+                    iv = (int) ( bugTicket.getFixedVersion().getVersionInt() - proportionValueFromColdStart);
+
                 if (iv <= 1){
                     //If the calculated IV is <= 1, the injected is the first version.
                     bugTicket.setInjectedVersion(versionInfoList.get(1));

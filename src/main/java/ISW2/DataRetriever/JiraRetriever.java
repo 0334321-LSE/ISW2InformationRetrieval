@@ -82,8 +82,6 @@ public class JiraRetriever {
         return bugTickets;
     }
 
-
-
 /**
     Obtains all the existing version of the project from jira
 */
@@ -111,7 +109,7 @@ public class JiraRetriever {
                 versionInfoList.add(versionInfo) ;
             }
         }
-        LocalDate nullVersionDate = LocalDate.parse("1980-05-17");
+        LocalDate nullVersionDate = LocalDate.parse("1900-01-01");
         versionInfoList.add( new VersionInfo("NULL",nullVersionDate,"nullversion",0));
         versionInfoList.sort(Comparator.comparing(VersionInfo::getVersionDate));
 
