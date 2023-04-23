@@ -38,6 +38,13 @@
             <version>RELEASE</version>
             <scope>compile</scope>
         </dependency>
+
+        <!-- Dependency useful to create and write the file .csv -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>3.9</version>
+        </dependency>
     </dependencies>
 
 </project>

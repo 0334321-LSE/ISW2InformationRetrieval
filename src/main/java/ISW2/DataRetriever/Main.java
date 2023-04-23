@@ -5,9 +5,10 @@ import ISW2.DataRetriever.model.BugTicket;
 import ISW2.DataRetriever.model.ClassInfo;
 import ISW2.DataRetriever.model.CommitInfo;
 import ISW2.DataRetriever.model.VersionInfo;
-import ISW2.DataRetriever.util.ClassInfoRetriever;
-import ISW2.DataRetriever.util.CommitRetriever;
-import ISW2.DataRetriever.util.JiraRetriever;
+import ISW2.DataRetriever.retriever.ClassInfoRetriever;
+import ISW2.DataRetriever.retriever.CommitRetriever;
+import ISW2.DataRetriever.retriever.JiraRetriever;
+import ISW2.DataRetriever.util.CSVWriter;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 
@@ -35,17 +36,19 @@ public class Main {
         Proportion.proportion(bugTickets,versionInfoList,project_name);
 
         //Retrieve commits form git for each ticket
-        CommitRetriever commitRetriever = new CommitRetriever() ;
+        CommitRetriever commitRetriever = new CommitRetriever(versionInfoList) ;
         List<RevCommit> allCommitsList = commitRetriever.retrieveAllCommitsInfo(repoPath + project_name, project_name);
         commitRetriever.retrieveCommitFromTickets(bugTickets, allCommitsList);
         //TODO is necessary to match ALL the commits to the version not only the right one
         //For each version, add the list of all commits of that version
-        List<CommitInfo> commitInfo = commitRetriever.getVersionAndCommitsAssociations(allCommitsList,versionInfoList);
+        List<CommitInfo> commitInfoList = commitRetriever.getVersionAndCommitsAssociations(allCommitsList,versionInfoList);
         ClassInfoRetriever classInfoRetriever = new ClassInfoRetriever(repoPath + project_name,versionInfoList,bugTickets);
-        classInfoRetriever.getVersionAndClassAssociation(commitInfo);
+        classInfoRetriever.getVersionAndClassAssociation(commitInfoList);
         //
-        List<ClassInfo> javaClassesList = classInfoRetriever.labelClasses(commitInfo);
+        List<ClassInfo> javaClassesList = classInfoRetriever.labelClasses(commitInfoList);
+        classInfoRetriever.assignCommitsToClasses(javaClassesList,allCommitsList,commitInfoList);
 
+        CSVWriter.writeCsvPerRelease(project_name,javaClassesList,versionInfoList.size()-1);
 
         System.out.println("\n\nGoodbye");
 

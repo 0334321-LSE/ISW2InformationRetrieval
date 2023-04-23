@@ -17,4 +17,5 @@ viene settata come fixed version la prima.
 7)Alcuni ticket presentano delle version non esistenti tra quelle elencate in Jira, questo capita soprattutto per i progetti ancora aperti.
 In tal caso si è scelto di settare la injected version come NULL e di scartarli in caso accadesse con la  opening e la fixed version.
 
-
+8)Vengono scartati i commit che non sono associabili ad alcuna versione tra quelle ricavate
+da Jira, questo capita per esempio in bookkeeper in cui in Jira mancano le versioni più recenti.

@@ -2,7 +2,7 @@ package ISW2.DataRetriever.control;
 
 import ISW2.DataRetriever.model.BugTicket;
 import ISW2.DataRetriever.model.VersionInfo;
-import ISW2.DataRetriever.util.JiraRetriever;
+import ISW2.DataRetriever.retriever.JiraRetriever;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;

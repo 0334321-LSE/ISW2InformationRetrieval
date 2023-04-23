@@ -62,7 +62,6 @@ public class CommitInfo {
         for(RevCommit commit : commitsList) {
             //Cast date to local date then compare
             LocalDate commitDate = commit.getCommitterIdent().getWhen().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            //TODO check what is last date in fanfa program
             //if firstDate < commitDate <= lastDate then add the commit in matchingCommits list
             if(commitDate.isAfter(firstDate) && (commitDate.isBefore(lastDate) || commitDate.equals(lastDate))) {
                 matchingCommits.add(commit);

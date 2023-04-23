@@ -1,4 +1,4 @@
-package ISW2.DataRetriever.util;
+package ISW2.DataRetriever.retriever;
 
 import ISW2.DataRetriever.model.BugTicket;
 import ISW2.DataRetriever.model.CommitInfo;
@@ -25,21 +25,30 @@ import static ISW2.DataRetriever.model.CommitInfo.getCommitsOfVersion;
 
 public class CommitRetriever {
 
-    /** Retrieve all commits from all branches*/
+    private List<VersionInfo> versionInfoList;
+
+    public CommitRetriever(List<VersionInfo> versionInfoList){
+        this.versionInfoList = versionInfoList;
+    }
+
+    /** Retrieve all commits */
     public List<RevCommit> retrieveAllCommitsInfo(String repoPath, String projectName) throws IOException, GitAPIException {
         RepositoryBuilder repositoryBuilder = new RepositoryBuilder();
         Repository repo = repositoryBuilder.setGitDir(new File(repoPath + "/.git")).build() ;
         Git git = new Git(repo) ;
         List<RevCommit> revCommitList = new ArrayList<>() ;
-        //TODO to get all branches
+        // to get all branches
         //List<Ref> branchesList = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
         //for (Ref branch : branchesList) {
         //Iterable<RevCommit> commitsListIterable = git.log().add(repo.resolve(branch.getName())).call();
-        Iterable<RevCommit> commitsListIterable = git.log().call();
-
-        for (RevCommit commit : commitsListIterable) {
-                revCommitList.add(commit);
-            }
+            Iterable<RevCommit> commitsListIterable = git.log().call();
+            LocalDate lastVersionDate = versionInfoList.get(versionInfoList.size()-1).getVersionDate();
+            for (RevCommit commit : commitsListIterable) {
+                //If commits is before the last version date it's ok
+                LocalDate commitDate = LocalDate.from(commit.getAuthorIdent().getWhen().toInstant().atZone(ZoneId.systemDefault()));
+                if(commitDate.isBefore(lastVersionDate))
+                        revCommitList.add(commit);
+                }
         //}
         revCommitList.sort(Comparator.comparingLong(o -> o.getAuthorIdent().getWhen().getTime()));
         saveAllCommitsOnJSON(revCommitList, projectName);

@@ -1,7 +1,8 @@
-package ISW2.DataRetriever.util;
+package ISW2.DataRetriever.retriever;
 
 import ISW2.DataRetriever.model.BugTicket;
 import ISW2.DataRetriever.model.VersionInfo;
+import ISW2.DataRetriever.util.URLBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONObject;

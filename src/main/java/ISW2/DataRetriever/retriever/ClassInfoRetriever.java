@@ -1,4 +1,4 @@
-package ISW2.DataRetriever.util;
+package ISW2.DataRetriever.retriever;
 
 import ISW2.DataRetriever.model.BugTicket;
 import ISW2.DataRetriever.model.ClassInfo;
@@ -45,7 +45,7 @@ public class ClassInfoRetriever {
         this.ticketsWithAV = bugTicketList;
     }
 
-    /*Get java-classes mapped into <String String> map where the first is the class path and
+    /** Get java-classes mapped into <String String> map where the first is the class path and
      the second is the code of the class*/
     private Map<String, String> getClasses(RevCommit commit) throws IOException {
 
@@ -69,7 +69,7 @@ public class ClassInfoRetriever {
 
     }
 
-    /*The purpose of this method is to return a list of JavaClass instances with:
+    /** This method returns a list of JavaClass instances with:
 	 * - Class name
 	 * - Class content
 	 * - Release
@@ -110,8 +110,8 @@ public class ClassInfoRetriever {
     }
 
     private List<String> getModifiedClasses(RevCommit commit) throws IOException {
-
-        List<String> modifiedClasses = new ArrayList<>();	//Here there will be the names of the classes that have been modified by the commit
+        //Here there will be the names of the classes that have been modified by the commit
+        List<String> modifiedClasses = new ArrayList<>();
 
         try(DiffFormatter diffFormatter = new DiffFormatter(DisabledOutputStream.INSTANCE);
             ObjectReader reader = this.repo.newObjectReader()) {
@@ -120,7 +120,8 @@ public class ClassInfoRetriever {
             ObjectId newTree = commit.getTree();
             newTreeIter.reset(reader, newTree);
 
-            RevCommit commitParent = commit.getParent(0);	//It's the previous commit of the commit we are considering
+            //It's the previous commit of the commit we are considering
+            RevCommit commitParent = commit.getParent(0);
             CanonicalTreeParser oldTreeIter = new CanonicalTreeParser();
             ObjectId oldTree = commitParent.getTree();
             oldTreeIter.reset(reader, oldTree);
@@ -146,6 +147,7 @@ public class ClassInfoRetriever {
 
     }
 
+    /** Returns ClassInfo list obtained from the classes contained into a CommitInfo list*/
     public static List<ClassInfo> buildAllJavaClasses(List<CommitInfo> CommitsAssociatedWithVersion) {
 
         List<ClassInfo> javaClasses = new ArrayList<>();
@@ -163,7 +165,7 @@ public class ClassInfoRetriever {
 
     }
 
-    /*This method, for each CommitInfo , retrieves all the classes that were present
+    /** This method, for each CommitInfo , retrieves all the classes that were present
      * on that version date, and then sets these classes as attribute of the instance*/
     public void getVersionAndClassAssociation(List<CommitInfo> CommitsAssociatedWithVersion) throws IOException {
 
@@ -178,6 +180,26 @@ public class ClassInfoRetriever {
 
     }
 
+    /** For each ClassInfo instance, retrieves a list of ALL the commits (not only the ones associated with some ticket) that have modified
+     * the specified class for the specified release (where class and release are Class info attributes)*/
+    public void assignCommitsToClasses(List<ClassInfo> javaClasses, List<RevCommit> commits, List<CommitInfo> CommitsAssociatedWithVersion) throws IOException {
+
+        for(RevCommit commit : commits) {
+            VersionInfo associatedVersion = VersionInfo.getVersionOfCommit(commit, CommitsAssociatedWithVersion);
+
+            if(associatedVersion != null) {		//There are also commits with no associatedRelease because their date is latter than last release date
+                List<String> modifiedClasses = getModifiedClasses(commit);
+
+                for(String modifClass : modifiedClasses) {
+                    ClassInfo.updateJavaClassCommits(javaClasses, modifClass, associatedVersion, commit);
+
+                }
+
+            }
+
+        }
+
+    }
 
 
 }

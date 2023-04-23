@@ -1,5 +1,7 @@
 package ISW2.DataRetriever.model;
 
+import org.eclipse.jgit.revwalk.RevCommit;
+
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -75,5 +77,18 @@ public class VersionInfo {
 
     public static VersionInfo getLastVersion (List<VersionInfo> versionInfoList){
         return versionInfoList.get(versionInfoList.size()-1);
+    }
+    //TODO create util classes for all model classes, put into those static method etc...
+    public static VersionInfo getVersionOfCommit(RevCommit commit, List<CommitInfo> CommitsAssociatedWithVersion){
+        for(CommitInfo commitInfo : CommitsAssociatedWithVersion) {
+            for(RevCommit c : commitInfo.getCommitList()) {
+                if(c.equals(commit)) {
+                    return commitInfo.getVersionInfo();
+                }
+
+            }
+
+        }
+        return null;
     }
 }
