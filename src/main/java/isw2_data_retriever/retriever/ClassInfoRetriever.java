@@ -1,11 +1,10 @@
-package ISW2.DataRetriever.retriever;
+package isw2_data_retriever.retriever;
 
-import ISW2.DataRetriever.model.BugTicket;
-import ISW2.DataRetriever.model.ClassInfo;
-import ISW2.DataRetriever.model.CommitInfo;
-import ISW2.DataRetriever.model.VersionInfo;
-import ISW2.DataRetriever.util.ClassInfoUtil;
-import ISW2.DataRetriever.util.VersionInfoUtil;
+import isw2_data_retriever.model.BugTicket;
+import isw2_data_retriever.model.ClassInfo;
+import isw2_data_retriever.model.VersionInfo;
+import isw2_data_retriever.model.Version;
+import isw2_data_retriever.util.VersionUtil;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -27,24 +26,23 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static ISW2.DataRetriever.util.ClassInfoUtil.updateJavaClassBuggyness;
-import static ISW2.DataRetriever.util.CommitInfoUtil.getVersionOfCommit;
+import static isw2_data_retriever.model.ClassInfo.updateJavaClassBuggyness;
 
 public class ClassInfoRetriever {
 
     private Git git;
     private Repository repo;
-    private List<VersionInfo> versionInfoList;
+    private List<Version> versionList;
     private List<BugTicket> ticketsWithAV;
 
-    public ClassInfoRetriever(String repoPath, List<VersionInfo> versionInfoList, List<BugTicket> bugTicketList) throws IOException {
+    public ClassInfoRetriever(String repoPath, List<Version> versionList, List<BugTicket> bugTicketList) throws IOException {
         RepositoryBuilder repositoryBuilder = new RepositoryBuilder();
         Repository repo = repositoryBuilder.setGitDir(new File(repoPath + "/.git")).build() ;
         Git git = new Git(repo) ;
 
         this.git = git;
         this.repo= git.getRepository();
-        this.versionInfoList = versionInfoList;
+        this.versionList = versionList;
 
         this.ticketsWithAV = bugTicketList;
     }
@@ -79,31 +77,29 @@ public class ClassInfoRetriever {
 	 * - Release
 	 * - Binary value "isBuggy"*/
 
-    public List<ClassInfo> labelClasses(List<CommitInfo> relCommAssociations) throws GitAPIException, IOException {
-
-        List<ClassInfo> javaClasses = buildAllJavaClasses(relCommAssociations);
-
-        for(BugTicket ticket : this.ticketsWithAV) {
-            doLabeling(javaClasses, ticket, relCommAssociations);
+    public void labelClassesUntilVersionID(List<VersionInfo> versionInfoList, List<ClassInfo> javaClasses, int versionID) throws GitAPIException, IOException {
+        List<BugTicket> bugTicketList = VersionUtil.getAssociatedTicket(this.ticketsWithAV,versionID);
+        //TODO label classes only for the ticket remaining ticket
+        for(BugTicket ticket : bugTicketList) {
+            doLabeling(javaClasses, ticket, versionInfoList);
 
         }
-        return javaClasses;
 
     }
 
-    private void doLabeling(List<ClassInfo> javaClasses, BugTicket ticket, List<CommitInfo> commitInfoList) throws GitAPIException, IOException {
+    private void doLabeling(List<ClassInfo> javaClasses, BugTicket ticket, List<VersionInfo> versionInfoList) throws GitAPIException, IOException {
 
         List<RevCommit> commitsAssociatedWIssue = ticket.getAssociatedCommit();
         //TODO fix comments
         for(RevCommit commit : commitsAssociatedWIssue) {
-            VersionInfo associatedVersionInfo = getVersionOfCommit(commit, commitInfoList);
-            //associatedVersionInfo can be null if commit date is after last release date; in that case we ignore the commit
+            Version associatedVersion = VersionInfo.getVersionOfCommit(commit, versionInfoList);
+            //associatedVersion can be null if commit date is after last release date; in that case we ignore the commit
             //(it is trying to fix a issue that hypothetically should be already closed)
-            if(associatedVersionInfo != null) {
+            if(associatedVersion != null) {
                 List<String> modifiedClasses = getModifiedClasses(commit);
 
                 for(String modifClass : modifiedClasses) {
-                    ClassInfoUtil.updateJavaClassBuggyness(javaClasses, modifClass, ticket.getInjectedVersion(), associatedVersionInfo);
+                    updateJavaClassBuggyness(javaClasses, modifClass, ticket.getInjectedVersion(), associatedVersion);
 
                 }
 
@@ -113,7 +109,7 @@ public class ClassInfoRetriever {
 
     }
 
-    private List<String> getModifiedClasses(RevCommit commit) throws IOException {
+    public List<String> getModifiedClasses(RevCommit commit) throws IOException {
         //Here there will be the names of the classes that have been modified by the commit
         List<String> modifiedClasses = new ArrayList<>();
 
@@ -151,16 +147,16 @@ public class ClassInfoRetriever {
 
     }
 
-    /** Returns ClassInfo list obtained from the classes contained into a CommitInfo list*/
-    public static List<ClassInfo> buildAllJavaClasses(List<CommitInfo> CommitsAssociatedWithVersion) {
+    /** Returns ClassInfo list obtained from the classes contained into a VersionInfo list*/
+    public static List<ClassInfo> buildAllJavaClasses(List<VersionInfo> CommitsAssociatedWithVersion) {
 
         List<ClassInfo> javaClasses = new ArrayList<>();
 
-        for(CommitInfo commitInfo : CommitsAssociatedWithVersion) {
-            if(commitInfo.getVersionInfo().getVersionName().equals("NULL"))
+        for(VersionInfo versionInfo : CommitsAssociatedWithVersion) {
+            if(versionInfo.getVersion().getVersionName().equals("NULL"))
                 continue;
-            for(Map.Entry<String, String> entryMap : commitInfo.getJavaClasses().entrySet()) {
-                javaClasses.add(new ClassInfo(entryMap.getKey(), entryMap.getValue(), commitInfo.getVersionInfo()));
+            for(Map.Entry<String, String> entryMap : versionInfo.getJavaClasses().entrySet()) {
+                javaClasses.add(new ClassInfo(entryMap.getKey(), entryMap.getValue(), versionInfo.getVersion()));
 
             }
 
@@ -169,16 +165,16 @@ public class ClassInfoRetriever {
 
     }
 
-    /** This method, for each CommitInfo , retrieves all the classes that were present
+    /** This method, for each VersionInfo , retrieves all the classes that were present
      * on that version date, and then sets these classes as attribute of the instance*/
-    public void getVersionAndClassAssociation(List<CommitInfo> CommitsAssociatedWithVersion) throws IOException {
+    public void getVersionAndClassAssociation(List<VersionInfo> CommitsAssociatedWithVersion) throws IOException {
 
-        for(CommitInfo commitInfo : CommitsAssociatedWithVersion) {
-            if(commitInfo.getCommitList().isEmpty())
+        for(VersionInfo versionInfo : CommitsAssociatedWithVersion) {
+            if(versionInfo.getCommitList().isEmpty())
                 //jmp to next iteration if that version doesn't have commits
                 continue;
-            Map<String, String> javaClasses = getClasses(commitInfo.getLastCommit());
-            commitInfo.setJavaClasses(javaClasses);
+            Map<String, String> javaClasses = getClasses(versionInfo.getLastCommit());
+            versionInfo.setJavaClasses(javaClasses);
 
         }
 
@@ -186,16 +182,16 @@ public class ClassInfoRetriever {
 
     /** For each ClassInfo instance, retrieves a list of ALL the commits (not only the ones associated with some ticket) that have modified
      * the specified class for the specified release (where class and release are Class info attributes)*/
-    public void assignCommitsToClasses(List<ClassInfo> javaClasses, List<RevCommit> commits, List<CommitInfo> CommitsAssociatedWithVersion) throws IOException {
+    public void assignCommitsToClasses(List<ClassInfo> javaClasses, List<RevCommit> commits, List<VersionInfo> CommitsAssociatedWithVersion) throws IOException {
 
         for(RevCommit commit : commits) {
-            VersionInfo associatedVersion = VersionInfoUtil.getVersionOfCommit(commit, CommitsAssociatedWithVersion);
+            Version associatedVersion = Version.getVersionOfCommit(commit, CommitsAssociatedWithVersion);
 
             if(associatedVersion != null) {		//There are also commits with no associatedRelease because their date is latter than last release date
                 List<String> modifiedClasses = getModifiedClasses(commit);
 
                 for(String modifClass : modifiedClasses) {
-                    ClassInfoUtil.updateJavaClassCommits(javaClasses, modifClass, associatedVersion, commit);
+                    ClassInfo.updateJavaClassCommits(javaClasses, modifClass, associatedVersion, commit);
 
                 }
 
@@ -205,10 +201,6 @@ public class ClassInfoRetriever {
 
     }
 
-    /** This method initializes two lists:
-     <br /> List of numbers of added lines by each commit; every entry is associated to one specific commit
-     <br /> List of numbers of deleted lines by each commit; every entry is associated to one specific commit
-     <br /> These lists will be used to calculate sum, max & avg*/
     public void computeAddedAndDeletedLinesList(ClassInfo javaClass) throws IOException {
 
         for(RevCommit comm : javaClass.getCommits()) {
@@ -243,7 +235,7 @@ public class ClassInfoRetriever {
 
         int addedLines = 0;
         for(Edit edit : diffFormatter.toFileHeader(entry).toEditList()) {
-            addedLines += edit.getEndA() - edit.getBeginA();
+            addedLines += edit.getEndB() - edit.getBeginB();
 
         }
         return addedLines;
@@ -254,7 +246,7 @@ public class ClassInfoRetriever {
 
         int deletedLines = 0;
         for(Edit edit : diffFormatter.toFileHeader(entry).toEditList()) {
-            deletedLines += edit.getEndB() - edit.getBeginB();
+            deletedLines += edit.getEndA() - edit.getBeginA();
 
         }
         return deletedLines;

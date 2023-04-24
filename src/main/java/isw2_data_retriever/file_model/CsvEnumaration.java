@@ -1,4 +1,4 @@
-package ISW2.DataRetriever.fileModel;
+package isw2_data_retriever.file_model;
 
 public enum  CsvEnumaration {
     TRAINING,

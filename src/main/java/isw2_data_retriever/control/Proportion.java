@@ -1,9 +1,8 @@
-package ISW2.DataRetriever.control;
+package isw2_data_retriever.control;
 
-import ISW2.DataRetriever.model.BugTicket;
-import ISW2.DataRetriever.model.VersionInfo;
-import ISW2.DataRetriever.retriever.JiraRetriever;
-import org.jetbrains.annotations.NotNull;
+import isw2_data_retriever.model.BugTicket;
+import isw2_data_retriever.model.Version;
+import isw2_data_retriever.retriever.JiraRetriever;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -16,43 +15,33 @@ public class Proportion {
     private static final String[] PROJECT_NAMES = {"bookkeeper", "avro", "openjpa", "storm", "zookeeper", "syncope","tajo"};
 
     /** Use proportion to obtain injected version where there isn't */
-    public static void proportion(List<BugTicket> bugTickets, List<VersionInfo> versionInfoList, String projectName){
+    public static void proportion(List<BugTicket> bugTickets, List<Version> versionList, String projectName) throws URISyntaxException, IOException {
         BugTicket ticketInfoRetriever = new BugTicket();
-        ticketInfoRetriever.setVersionInfo(bugTickets,versionInfoList);
+        ticketInfoRetriever.setVersionInfo(bugTickets, versionList);
         //ticketInfoRetriever.printVersionInformationList(bugTickets);
-        List<BugTicket> bugTicketsForProportion = correctBugTicketListForProportioning(bugTickets,versionInfoList);
 
-        if(bugTicketsForProportion.size()>5){
-            System.out.println("\nRemaining ticket for proportion: "+bugTicketsForProportion.size());
-            proportionForInjectedVersion(bugTickets,projectName,bugTicketsForProportion,versionInfoList);
-        }
-        else{
-            try {
-                System.out.println("\n ----------------------------------------------");
-                System.out.println("Tickets are not enough, using cold start to obtains proportion value");
-                double proportionValue = calculateProportionValueWithColdStart(projectName);
-                System.out.println("\n ----------------------------------------------");
-                System.out.println("The proportion value from cold start is --> "+proportionValue);
-                proportionForInjectVersion(bugTickets,proportionValue,versionInfoList);
-            } catch (URISyntaxException | IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        System.out.println("\n ----------------------------------------------");
+        System.out.println("Using cold start to obtains proportion value");
+        double proportionValue = calculateProportionValueWithColdStart(projectName);
+        System.out.println("\n ----------------------------------------------");
+        System.out.println("The proportion value from cold start is --> "+proportionValue);
+        proportionForInjectVersion(bugTickets,proportionValue, versionList);
+
         //ticketInfoRetriever.printVersionInformationList(bugTickets);
         //System.out.println("\n"+projectName.toUpperCase()+" ticket number: "+bugTickets.size());
 
         // I discard the invalid tickets after the end of proportion
-        discardInvalidTicket(bugTickets,versionInfoList);
+        discardInvalidTicket(bugTickets, versionList);
     }
 
     /** Discard malformed ticket */
-   private static void discardInvalidTicket(List<BugTicket> bugTicketsList, List<VersionInfo> versionInfoList){
+   private static void discardInvalidTicket(List<BugTicket> bugTicketsList, List<Version> versionList){
        //RemoveIF
-       bugTicketsList.removeIf(bugTicket-> bugTicket.getTicketsCreationDate().isBefore(versionInfoList.get(0).getVersionDate()));
+       bugTicketsList.removeIf(bugTicket-> bugTicket.getTicketsCreationDate().isBefore(versionList.get(0).getVersionDate()));
        //RemoveIF there are some tickets without OV or FV
        bugTicketsList.removeIf(bugTicket -> bugTicket.getOpeningVersion().getVersionName().equals("NULL") || bugTicket.getFixedVersion().getVersionName().equals("NULL"));
        //RemoveIF there are some tickets with FV == OV == First Version
-       bugTicketsList.removeIf(bugTicket-> bugTicket.getOpeningVersion().getVersionName().equals(versionInfoList.get(0).getVersionName()) && bugTicket.getFixedVersion().getVersionName().equals(versionInfoList.get(0).getVersionName()));
+       bugTicketsList.removeIf(bugTicket-> bugTicket.getOpeningVersion().getVersionName().equals(versionList.get(0).getVersionName()) && bugTicket.getFixedVersion().getVersionName().equals(versionList.get(0).getVersionName()));
        //RemoveIF IV >= OV
        bugTicketsList.removeIf(bugTicket->bugTicket.getInjectedVersion().getVersionInt() >= bugTicket.getOpeningVersion().getVersionInt());
        //RemoveIF IV > FV
@@ -63,7 +52,7 @@ public class Proportion {
    }
 
     /** Drop tickets not usefully for proportion  */
-    private static List<BugTicket> correctBugTicketListForProportioning(List<BugTicket> bugTicketsList, List<VersionInfo> versionInfoList){
+    private static List<BugTicket> correctBugTicketListForProportioning(List<BugTicket> bugTicketsList, List<Version> versionList){
 
         List<BugTicket> BugTicketListForProportion =  new ArrayList<>(bugTicketsList);
         //Zeroth control, remove if IV is null
@@ -86,47 +75,27 @@ public class Proportion {
         return BugTicketListForProportion;
     }
 
-    private static double calculateProportioningCoefficient(List<BugTicket> bugTicketsListForProportion, List<VersionInfo> versionInfoList){
+    private static double calculateProportioningCoefficient(List<BugTicket> bugTicketsListForProportion, List<Version> versionList){
 
-        double proportionValue = 0;
+        ArrayList<Double> proportionValues = new ArrayList<>();
         for( BugTicket bugTicket: bugTicketsListForProportion){
             // P = (FV-IV)/(FV-OV)
-            proportionValue += ( (double) (bugTicket.getFixedVersion().getVersionInt() - bugTicket.getInjectedVersion().getVersionInt()) / (bugTicket.getFixedVersion().getVersionInt() - bugTicket.getOpeningVersion().getVersionInt()));
+            proportionValues.add((double) (bugTicket.getFixedVersion().getVersionInt() - bugTicket.getInjectedVersion().getVersionInt()) / (bugTicket.getFixedVersion().getVersionInt() - bugTicket.getOpeningVersion().getVersionInt()));
         }
-        return   proportionValue / bugTicketsListForProportion.size();
+        return  obtainMedian(proportionValues);
     }
 
-    private static void proportionForInjectedVersion(@NotNull List<BugTicket> bugTickets,String projectName ,List<BugTicket> bugTicketsListForProportion, List<VersionInfo> versionInfoList){
-        int iv;
-
-        double proportionValue = calculateProportioningCoefficient(bugTicketsListForProportion,versionInfoList);
-        System.out.println("\nProportion value for "+ projectName.toUpperCase()+" is--> "+proportionValue);
-        for(BugTicket bugTicket: bugTickets){
-
-            if (bugTicket.getInjectedVersion().getVersionName().equals("NULL") ){
-                //Apply proportion: IV= FV-(FV-OV)*P IF FV!=OV
-                if( bugTicket.getFixedVersion().getVersionInt() != (bugTicket.getOpeningVersion().getVersionInt()))
-                    iv = (int) (bugTicket.getFixedVersion().getVersionInt() - ((bugTicket.getFixedVersion().getVersionInt() - (bugTicket.getOpeningVersion().getVersionInt())) * proportionValue));
-                    // in this case IV = FV-P
-                else
-                    iv = (int) ( bugTicket.getFixedVersion().getVersionInt() - proportionValue);
-                if (iv <= 1){
-                    //If the calculated IV is <= 1, the injected is the first version.
-                    bugTicket.setInjectedVersion(versionInfoList.get(1));
-                    continue;
-                }
-
-                innerFor:for ( VersionInfo version: versionInfoList ){
-                    if (version.getVersionInt() == iv){
-                        bugTicket.setInjectedVersion(version);
-                        break innerFor;
-                    }
-                }
-            }
-        }
+    private static double obtainMedian(List<Double> proportionValues){
+        if(proportionValues.size()%2 != 0)
+            //if is odd ( n/2 )
+            return proportionValues.get((proportionValues.size()+1)/2);
+        else
+            //if is even ( n/2 + n/2+1 ) /2
+            return (proportionValues.get(proportionValues.size()/2)+ proportionValues.get((proportionValues.size()/2)+1) )/2 ;
     }
 
-    private static void proportionForInjectVersion(List<BugTicket> bugTickets,double proportionValueFromColdStart, List<VersionInfo> versionInfoList){
+
+    private static void proportionForInjectVersion(List<BugTicket> bugTickets,double proportionValueFromColdStart, List<Version> versionList){
 
         int iv;
 
@@ -142,11 +111,11 @@ public class Proportion {
 
                 if (iv <= 1){
                     //If the calculated IV is <= 1, the injected is the first version.
-                    bugTicket.setInjectedVersion(versionInfoList.get(1));
+                    bugTicket.setInjectedVersion(versionList.get(1));
                     continue;
                 }
 
-                innerFor:for ( VersionInfo version: versionInfoList ){
+                innerFor:for ( Version version: versionList){
                     if (version.getVersionInt() == iv){
                         bugTicket.setInjectedVersion(version);
                         break innerFor;
@@ -163,14 +132,14 @@ public class Proportion {
         for (String project: PROJECT_NAMES){
             if(!project.equals(projectName)){
 
-                List<VersionInfo> versionInfoList = retriever.retrieveVersions(project) ;
+                List<Version> versionList = retriever.retrieveVersions(project) ;
 
-                List<BugTicket> bugTickets = retriever.retrieveBugTicket(project,versionInfoList) ;
+                List<BugTicket> bugTickets = retriever.retrieveBugTicket(project, versionList) ;
 
                 BugTicket ticketInfoRetriever = new BugTicket();
-                ticketInfoRetriever.setVersionInfo(bugTickets,versionInfoList);
-                List<BugTicket> bugTicketsForProportion = correctBugTicketListForProportioning(bugTickets,versionInfoList);
-                localProportionValue = calculateProportioningCoefficient(bugTicketsForProportion, versionInfoList);
+                ticketInfoRetriever.setVersionInfo(bugTickets, versionList);
+                List<BugTicket> bugTicketsForProportion = correctBugTicketListForProportioning(bugTickets, versionList);
+                localProportionValue = calculateProportioningCoefficient(bugTicketsForProportion, versionList);
                 proportionValue += localProportionValue;
                 System.out.println("\nProportion value for "+project.toUpperCase()+" is--> "+localProportionValue);
 

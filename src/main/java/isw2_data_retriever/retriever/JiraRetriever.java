@@ -1,9 +1,8 @@
-package ISW2.DataRetriever.retriever;
+package isw2_data_retriever.retriever;
 
-import ISW2.DataRetriever.model.BugTicket;
-import ISW2.DataRetriever.model.VersionInfo;
-import ISW2.DataRetriever.util.URLBuilder;
-import ISW2.DataRetriever.util.VersionInfoUtil;
+import isw2_data_retriever.model.BugTicket;
+import isw2_data_retriever.model.Version;
+import isw2_data_retriever.util.URLBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -22,7 +21,7 @@ public class JiraRetriever {
 
     //todo commenta tutti i metodi con il loro scopo
     /** This method return a list that contains all bug tickets from jira*/
-    public List<BugTicket> retrieveBugTicket(String projectName , List<VersionInfo> versionInfoList ) throws IOException, URISyntaxException {
+    public List<BugTicket> retrieveBugTicket(String projectName , List<Version> versionList) throws IOException, URISyntaxException {
         List<BugTicket> bugTickets = new ArrayList<>();
         URLBuilder urlBuilder = new URLBuilder() ;
         String urlFirstPart = urlBuilder.buildUrl(projectName) ;
@@ -56,7 +55,7 @@ public class JiraRetriever {
                     parseIssuesArray(issuesKeys, jsonIssueArray) ;
                     parseCreationDate(ticketsCreationDate, jsonIssueArray);
                     parseResolutionDate(ticketsResolutionDate,jsonIssueArray);
-                    parseAffectedVersion(affectedVersion, jsonIssueArray, versionInfoList);
+                    parseAffectedVersion(affectedVersion, jsonIssueArray, versionList);
 
 
             startPoint = startPoint + maxAmount ;
@@ -68,10 +67,10 @@ public class JiraRetriever {
             {
                 System.out.println("\n---------------------------------------------------------------------------");
                 System.out.println("\n"+projectName.toUpperCase()+" issue tickets acquired");
-                VersionInfo affectedV = new VersionInfo();
+                Version affectedV = new Version();
 
                 for(int i=0; i< issuesKeys.size();i++){
-                    affectedV = VersionInfoUtil.getVersionInfoFromName(affectedVersion.get(i),versionInfoList);
+                    affectedV = Version.getVersionInfoFromName(affectedVersion.get(i), versionList);
                     BugTicket bugTicket = new BugTicket(issuesKeys.get(i), ticketsCreationDate.get(i), ticketsResolutionDate.get(i), affectedV);
                     bugTickets.add(bugTicket);
                 }
@@ -87,7 +86,7 @@ public class JiraRetriever {
 /**
     Obtains all the existing version of the project from jira
 */
-    public List<VersionInfo> retrieveVersions(String projectName) throws URISyntaxException, IOException {
+    public List<Version> retrieveVersions(String projectName) throws URISyntaxException, IOException {
         String urlString = "https://issues.apache.org/jira/rest/api/2/project/" + projectName.toUpperCase();
         URI uri = new URI(urlString);
         URL url = uri.toURL();
@@ -96,7 +95,7 @@ public class JiraRetriever {
         JSONObject jsonObject = new JSONObject((jsonString));
         JSONArray jsonVersionArray = jsonObject.getJSONArray("versions");
 
-        List<VersionInfo> versionInfoList = new ArrayList<>();
+        List<Version> versionList = new ArrayList<>();
         for (int i = 0; i < jsonVersionArray.length(); i++) {
             String versionName = "";
             String dateString = "";
@@ -107,15 +106,15 @@ public class JiraRetriever {
                 versionId = jsonVersionArray.getJSONObject(i).get("id").toString() ;
 
                 LocalDate versionDate = LocalDate.parse(dateString) ;
-                VersionInfo versionInfo = new VersionInfo(versionName, versionDate, versionId, i+1) ;
-                versionInfoList.add(versionInfo) ;
+                Version version = new Version(versionName, versionDate, versionId, i+1) ;
+                versionList.add(version) ;
             }
         }
         LocalDate nullVersionDate = LocalDate.parse("1900-01-01");
-        versionInfoList.add( new VersionInfo("NULL",nullVersionDate,"nullversion",0));
-        versionInfoList.sort(Comparator.comparing(VersionInfo::getVersionDate));
+        versionList.add( new Version("NULL",nullVersionDate,"nullversion",0));
+        versionList.sort(Comparator.comparing(Version::getVersionDate));
 
-        return versionInfoList ;
+        return versionList;
     }
 
     /** Return issues key in a list*/
@@ -174,9 +173,9 @@ public class JiraRetriever {
     }
 
    /** Obtains affectedVersion from json Array*/
-    private void parseAffectedVersion(ArrayList<String> affectedVersion, JSONArray jsonArray, List<VersionInfo> versionInfoList ){
-        VersionInfo mapGenerator = new VersionInfo();
-        Map<String,Integer> versionMap = mapGenerator.getVersionInteger(versionInfoList);
+    private void parseAffectedVersion(ArrayList<String> affectedVersion, JSONArray jsonArray, List<Version> versionList){
+        Version mapGenerator = new Version();
+        Map<String,Integer> versionMap = mapGenerator.getVersionInteger(versionList);
 
         for (int i =0; i < jsonArray.length(); i++){
             JSONObject fields = (JSONObject) jsonArray.getJSONObject(i).get("fields");
@@ -195,8 +194,8 @@ public class JiraRetriever {
         }
     }
 
-    public void printVersionList(List<VersionInfo> versionInfoList){
-        for (VersionInfo info: versionInfoList)
+    public void printVersionList(List<Version> versionList){
+        for (Version info: versionList)
             info.printVersionInfo();
     }
 

@@ -1,4 +1,4 @@
-package ISW2.DataRetriever.model;
+package isw2_data_retriever.model;
 
 import org.eclipse.jgit.revwalk.RevCommit;
 
@@ -8,12 +8,13 @@ import java.util.List;
 public class ClassInfo {
     private String name;
     private String content;
-    private VersionInfo versionInfo;
+    private Version version;
     private List<RevCommit> commits;	//These are the commits of the specified release that have modified the class
     private boolean isBuggy;
 
     private int size;
     private int nr;
+    private int nFix;
     private int nAuth;
     private int locAdded;
     private int maxLocAdded;
@@ -25,6 +26,13 @@ public class ClassInfo {
     private List<Integer> addedLinesList;
     private List<Integer> deletedLinesList;
 
+    public List<Integer> getAddedLinesList() {
+        return addedLinesList;
+    }
+
+    public List<Integer> getDeletedLinesList() {
+        return deletedLinesList;
+    }
 
     public String getContent() {
         return content;
@@ -110,31 +118,25 @@ public class ClassInfo {
         this.avgChurn = avgChurn;
     }
 
-    public List<Integer> getAddedLinesList() {
-        return addedLinesList;
+    public int getnFix() {
+        return nFix;
     }
 
-    public List<Integer> getDeletedLinesList() {
-        return deletedLinesList;
+    public void updateNFix() {
+        this.nFix += 1;
     }
 
-    public void setDeletedLinesList(List<Integer> deletedLinesList) {
-        this.deletedLinesList = deletedLinesList;
-    }
 
-    public void setAddedLinesList(List<Integer> addedLinesList) {
-        this.addedLinesList = addedLinesList;
-    }
-
-    public ClassInfo(String name, String content, VersionInfo versionInfo){
+    public ClassInfo(String name, String content, Version version){
       this.name = name;
       this.content = content;
-      this.versionInfo = versionInfo;
+      this.version = version;
       this.commits = new ArrayList<>();
       this.isBuggy = false;
 
       this.size = 0;
       this.nr = 0;
+      this.nFix = 0;
       this.nAuth = 0;
       this.locAdded = 0;
       this.maxLocAdded = 0;
@@ -167,14 +169,43 @@ public class ClassInfo {
         this.name = name;
     }
 
-    public VersionInfo getVersionInfo() {
-        return versionInfo;
+    public Version getVersion() {
+        return version;
     }
 
-    public void setVersionInfo(VersionInfo versionInfo) {
-        this.versionInfo = versionInfo;
+    public void setVersionInfo(Version version) {
+        this.version = version;
     }
 
 
+    /**  Check if the classes into the ClassInfo list have been modified, if iv <= ov < fv, then javaClass is buggy */
+    public static void updateJavaClassBuggyness(List<ClassInfo> javaClasses, String className, Version injectedVersion, Version fixedVersion) {
+        //fv is related to the single commit, not to the ticket
+
+        for(ClassInfo javaClass : javaClasses) {
+            /*if javaClass has been modified by commit (className contains modified class name) and
+            is related to a version v such that iv <= ov < fv, then javaClass is buggy*/
+            if(javaClass.getName().equals(className) && javaClass.getVersion().getVersionInt() >= injectedVersion.getVersionInt() && javaClass.getVersion().getVersionInt() < fixedVersion.getVersionInt()) {
+                javaClass.setBuggy(true);
+
+            }
+
+        }
+
+    }
+
+    /** check if the classes into the list have been modified in the same release of the commit, in that case add it*/
+    public static void updateJavaClassCommits(List<ClassInfo> javaClasses, String className, Version associatedVersion, RevCommit commit) {
+
+        for(ClassInfo javaClass : javaClasses) {
+            //if javaClass has been modified by commit (that is className) and is related to the same release of commit, then add commit to javaClass.commits
+            if(javaClass.getName().equals(className) && javaClass.getVersion().getVersionInt() == associatedVersion.getVersionInt() && !javaClass.getCommits().contains(commit)) {
+                javaClass.getCommits().add(commit);
+
+            }
+
+        }
+
+    }
 
 }

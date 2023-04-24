@@ -1,8 +1,8 @@
 1) Come injected version è stata scelta la prima tra le versioni
 presenti nelle affected version (laddove presenti).
 
-2)Per i ticket in cui non era presente l’injected version si è provveduto a calolare il
-coefficiente di proportion P = (FV-IV)/(FV-OV) e a ricavarla grazie ad esso.
+2)Per i ticket in cui non era presente l’injected version si è utilizzato proportion-coldStart
+prendendo i ticket validi di tutti gli altri progetti.
 
 3)Come opening version è stata scelta la prima versione successiva alla creation date del ticket
 
@@ -19,3 +19,6 @@ In tal caso si è scelto di settare la injected version come NULL e di scartarli
 
 8)Vengono scartati i commit che non sono associabili ad alcuna versione tra quelle ricavate
 da Jira, questo capita per esempio in bookkeeper in cui in Jira mancano le versioni più recenti.
+
+9)Quando si fa walk forward si ricalcola la buggyness ad ogni iterazione con i ticket disponibili
+fino a quelli della versione di testing (inclusa)

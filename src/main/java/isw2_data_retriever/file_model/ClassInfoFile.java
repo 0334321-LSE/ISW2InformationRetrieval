@@ -1,6 +1,6 @@
-package ISW2.DataRetriever.fileModel;
+package isw2_data_retriever.file_model;
 
-import ISW2.DataRetriever.model.ClassInfo;
+import isw2_data_retriever.model.ClassInfo;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Cell;
@@ -56,7 +56,10 @@ public class ClassInfoFile {
         Sheet sheet;
         String csvNameStr = enumToString();
         Workbook wb = new HSSFWorkbook();
-
+        //TODO CREATE A DIRECTORY FOR EACH WALK FORWARD ITERATION
+       /* if(this.csvIndex==2){
+            String pathname = "./projectsARFF/" +this.projName.toLowerCase() + csvNameStr + ".csv";
+        }*/
         try(OutputStream os = new FileOutputStream("./projectsCSV/"+this.projName.toLowerCase()+"/"+ this.projName + csvNameStr + ".csv")) {
             sheet = wb.createSheet(this.projName);
 
@@ -75,35 +78,38 @@ public class ClassInfoFile {
                 Cell cell9 = row.createCell(9);
                 Cell cell10 = row.createCell(10);
                 Cell cell11 = row.createCell(11);
+                Cell cell12 = row.createCell(12);
 
                 if(i==-1) {
                     cell0.setCellValue("CLASS");
                     cell1.setCellValue("VERSION");
                     cell2.setCellValue("SIZE");
                     cell3.setCellValue("NR");
-                    cell4.setCellValue("N_AUTH");
-                    cell5.setCellValue("LOC_ADDED");
-                    cell6.setCellValue("MAX_LOC_ADDED");
-                    cell7.setCellValue("AVG_LOC_ADDED");
-                    cell8.setCellValue("CHURN");
-                    cell9.setCellValue("MAX_CHURN");
-                    cell10.setCellValue("AVG_CHURN");
-                    cell11.setCellValue("IS_BUGGY");
+                    cell4.setCellValue("NFix");
+                    cell5.setCellValue("N_AUTH");
+                    cell6.setCellValue("LOC_ADDED");
+                    cell7.setCellValue("MAX_LOC_ADDED");
+                    cell8.setCellValue("AVG_LOC_ADDED");
+                    cell9.setCellValue("CHURN");
+                    cell10.setCellValue("MAX_CHURN");
+                    cell11.setCellValue("AVG_CHURN");
+                    cell12.setCellValue("IS_BUGGY");
 
                 }
                 else {
                     cell0.setCellValue(this.javaClassesList.get(i).getName());
-                    cell1.setCellValue(this.javaClassesList.get(i).getVersionInfo().getVersionInt());
+                    cell1.setCellValue(this.javaClassesList.get(i).getVersion().getVersionInt());
                     cell2.setCellValue(this.javaClassesList.get(i).getSize());
                     cell3.setCellValue(this.javaClassesList.get(i).getNr());
-                    cell4.setCellValue(this.javaClassesList.get(i).getnAuth());
-                    cell5.setCellValue(this.javaClassesList.get(i).getLocAdded());
-                    cell6.setCellValue(this.javaClassesList.get(i).getMaxLocAdded());
-                    cell7.setCellValue(this.javaClassesList.get(i).getAvgLocAdded());
-                    cell8.setCellValue(this.javaClassesList.get(i).getChurn());
-                    cell9.setCellValue(this.javaClassesList.get(i).getMaxChurn());
-                    cell10.setCellValue(this.javaClassesList.get(i).getAvgChurn());
-                    cell11.setCellValue(this.javaClassesList.get(i).isBuggy());
+                    cell4.setCellValue(this.javaClassesList.get(i).getnFix());
+                    cell5.setCellValue(this.javaClassesList.get(i).getnAuth());
+                    cell6.setCellValue(this.javaClassesList.get(i).getLocAdded());
+                    cell7.setCellValue(this.javaClassesList.get(i).getMaxLocAdded());
+                    cell8.setCellValue(this.javaClassesList.get(i).getAvgLocAdded());
+                    cell9.setCellValue(this.javaClassesList.get(i).getChurn());
+                    cell10.setCellValue(this.javaClassesList.get(i).getMaxChurn());
+                    cell11.setCellValue(this.javaClassesList.get(i).getAvgChurn());
+                    cell12.setCellValue(this.javaClassesList.get(i).isBuggy());
 
                 }
 
@@ -120,11 +126,12 @@ public class ClassInfoFile {
 
         String csvNameStr = enumToString();
         Sheet sheet = writeOnCsv();
-        try(FileWriter wr = new FileWriter("./projectsCSV/"+this.projName.toLowerCase()+"/"+ this.projName + csvNameStr + ".arff")) {
+        try(FileWriter wr = new FileWriter("./projectsARFF/"+this.projName.toLowerCase()+"/"+ this.projName + csvNameStr + ".arff")) {
 
             wr.write("@relation " + this.projName + csvNameStr + "\n");
             wr.write("@attribute SIZE numeric\n");
             wr.write("@attribute NR numeric\n");
+            wr.write("@attribute NFix numeric\n");
             wr.write("@attribute N_AUTH numeric\n");
             wr.write("@attribute LOC_ADDED numeric\n");
             wr.write("@attribute MAX_LOC_ADDED numeric\n");
@@ -147,10 +154,11 @@ public class ClassInfoFile {
                 Double val8 = row.getCell(8).getNumericCellValue();
                 Double val9 = row.getCell(9).getNumericCellValue();
                 Double val10 = row.getCell(10).getNumericCellValue();
-                Boolean val11 = row.getCell(11).getBooleanCellValue();
+                Double val11 = row.getCell(11).getNumericCellValue();
+                Boolean val12 = row.getCell(12).getBooleanCellValue();
 
                 wr.write(val2.toString() + "," + val3.toString() + "," + val4.toString() + "," + val5.toString() + "," + val6.toString() + "," +
-                        val7.toString() + "," + val8.toString() + "," + val9.toString() + "," + val10.toString() + "," + val11.toString() + "\n");
+                        val7.toString() + "," + val8.toString() + "," + val9.toString() + "," + val10.toString() + "," + val11.toString() + "," + val12.toString() + "\n");
 
             }
 

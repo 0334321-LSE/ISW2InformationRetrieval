@@ -1,8 +1,8 @@
-package ISW2.DataRetriever.retriever;
+package isw2_data_retriever.retriever;
 
-import ISW2.DataRetriever.model.BugTicket;
-import ISW2.DataRetriever.model.CommitInfo;
-import ISW2.DataRetriever.model.VersionInfo;
+import isw2_data_retriever.model.BugTicket;
+import isw2_data_retriever.model.VersionInfo;
+import isw2_data_retriever.model.Version;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.*;
@@ -21,14 +21,14 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static ISW2.DataRetriever.util.CommitInfoUtil.getCommitsOfVersion;
+import static isw2_data_retriever.model.VersionInfo.getCommitsOfVersion;
 
 public class CommitRetriever {
 
-    private List<VersionInfo> versionInfoList;
+    private List<Version> versionList;
 
-    public CommitRetriever(List<VersionInfo> versionInfoList){
-        this.versionInfoList = versionInfoList;
+    public CommitRetriever(List<Version> versionList){
+        this.versionList = versionList;
     }
 
     /** Retrieve all commits */
@@ -42,7 +42,7 @@ public class CommitRetriever {
         //for (Ref branch : branchesList) {
         //Iterable<RevCommit> commitsListIterable = git.log().add(repo.resolve(branch.getName())).call();
             Iterable<RevCommit> commitsListIterable = git.log().call();
-            LocalDate lastVersionDate = versionInfoList.get(versionInfoList.size()-1).getVersionDate();
+            LocalDate lastVersionDate = versionList.get(versionList.size()-1).getVersionDate();
             for (RevCommit commit : commitsListIterable) {
                 //If commits is before the last version date it's ok
                 LocalDate commitDate = LocalDate.from(commit.getAuthorIdent().getWhen().toInstant().atZone(ZoneId.systemDefault()));
@@ -60,6 +60,7 @@ public class CommitRetriever {
 
         for (BugTicket bugTicket: bugTicketList){
             bugTicket.setAssociatedCommit(matchTicketIssueIDCommit(commitList,bugTicket.getIssueKey()));
+
         }
 
         discardTicketWithoutCommit(bugTicketList);
@@ -72,12 +73,9 @@ public class CommitRetriever {
     /** From ticketIssueID retrieve associated commit*/
     private ArrayList<RevCommit> matchTicketIssueIDCommit(List<RevCommit> commitList,String BugTicketID) {
         ArrayList<RevCommit> associatedCommitList = new ArrayList<>();
-        //Pattern pattern = Pattern.compile(".*" + BugTicketID + "+[^0-9].*") ;
-        //Pattern pattern = Pattern.compile("\\b"+BugTicketID+"\\b");
         Pattern pattern = Pattern.compile( BugTicketID + "+[^0-9]") ;
 
         for(RevCommit commit: commitList){
-            //TODO HERE REGULAR EXPRESSION
             String commitMessage = commit.getFullMessage() ;
             Matcher matcher = pattern.matcher(commitMessage) ;
             if (matcher.find())
@@ -86,22 +84,22 @@ public class CommitRetriever {
         return associatedCommitList;
     }
 
-    /** Returns a list of CommitInfo that associates a version with all the commits to it related,
+    /** Returns a list of VersionInfo that associates a version with all the commits to it related,
      * and specifies the last commit in temporal order*/
-    public List<CommitInfo> getVersionAndCommitsAssociations(List<RevCommit> allCommitsList, List<VersionInfo> versionInfoList) throws ParseException {
+    public List<VersionInfo> getVersionAndCommitsAssociations(List<RevCommit> allCommitsList, List<Version> versionList) throws ParseException {
 
-        List<CommitInfo> CommitsAssociatedWithVersion = new ArrayList<>();
+        List<VersionInfo> CommitsAssociatedWithVersion = new ArrayList<>();
 
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         //firstDate is the date of the previous release; for the first release we take 01/01/1900 as lower bound
         LocalDate firstDate = formatter.parse("1900-01-01").toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
-        for(VersionInfo versionInfo : versionInfoList) {
+        for(Version version : versionList) {
             //Skip the NULL version
-            if(versionInfo.getVersionName().equals("NULL"))
+            if(version.getVersionName().equals("NULL"))
                 continue;
-            CommitsAssociatedWithVersion.add(getCommitsOfVersion(allCommitsList, versionInfo, firstDate));
-            firstDate = versionInfo.getVersionDate();
+            CommitsAssociatedWithVersion.add(getCommitsOfVersion(allCommitsList, version, firstDate));
+            firstDate = version.getVersionDate();
         }
         //Remove if that version doesn't have commits
         CommitsAssociatedWithVersion.removeIf(commitInfo -> commitInfo.getCommitList().size()==0 );
@@ -144,5 +142,12 @@ public class CommitRetriever {
         bugTicketList.removeIf(bugTicket-> bugTicket.getAssociatedCommit().size()==0);
     }
 
-
+    public void getRemainingCommits(List<BugTicket> bugTicketList, List<RevCommit> commitList) {
+        List<RevCommit> remainingCommit = new ArrayList<>();
+        for (BugTicket bugTicket: bugTicketList){
+            remainingCommit.addAll(bugTicket.getAssociatedCommit());
+        }
+        commitList.removeAll(commitList);
+        commitList.addAll(remainingCommit);
+    }
 }

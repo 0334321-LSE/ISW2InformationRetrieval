@@ -1,4 +1,4 @@
-package ISW2.DataRetriever.model;
+package isw2_data_retriever.model;
 
 import org.eclipse.jgit.revwalk.RevCommit;
 
@@ -11,7 +11,7 @@ public class BugTicket {
 
     }
 
-    public BugTicket(String issueKey, LocalDate ticketsCreationDate, LocalDate ticketsResolutionDate, VersionInfo injectedVersion){
+    public BugTicket(String issueKey, LocalDate ticketsCreationDate, LocalDate ticketsResolutionDate, Version injectedVersion){
         this.issueKeys = issueKey;
         this.ticketsCreationDate = ticketsCreationDate;
         this.ticketsResolutionDate = ticketsResolutionDate;
@@ -21,37 +21,59 @@ public class BugTicket {
     private  String issueKeys;
     private  LocalDate ticketsCreationDate;
     private  LocalDate ticketsResolutionDate;
-    private  VersionInfo injectedVersion;
+    private Version injectedVersion;
 
-    private  VersionInfo openingVersion;
+    private Version openingVersion;
 
-    private  VersionInfo fixedVersion;
+    private Version fixedVersion;
     private ArrayList<RevCommit> associatedCommit;
+
+    private RevCommit lastCommit;
+
+    public RevCommit getLastCommit() {
+        return lastCommit;
+    }
 
     public void setTicketsCreationDate(LocalDate ticketsCreationDate) {
         this.ticketsCreationDate = ticketsCreationDate;
     }
 
-    public void setInjectedVersion(VersionInfo injectedVersion){
+    public void setInjectedVersion(Version injectedVersion){
         this.injectedVersion= injectedVersion;
     }
-    public void setOpeningVersion(VersionInfo openingVersion){
+    public void setOpeningVersion(Version openingVersion){
         this.openingVersion= openingVersion;
     }
-    public void setFixedVersion(VersionInfo fixedVersion){
+    public void setFixedVersion(Version fixedVersion){
         this.fixedVersion= fixedVersion;
     }
 
     public void setAssociatedCommit(ArrayList<RevCommit> associatedCommit) {
         this.associatedCommit = associatedCommit;
+        this.lastCommit = getLastCommit(associatedCommit);
     }
 
-    public void setVersionInfo(List<BugTicket> bugTickets, List<VersionInfo> versionInfoList){
+    /** Get last commit from one commit list */
+    private static RevCommit getLastCommit(List<RevCommit> commitsList) {
+        if(commitsList.size()==0)
+            return null;
+        RevCommit lastCommit = commitsList.get(0);
+        for(RevCommit commit : commitsList) {
+            //if commitDate > lastCommitDate then refresh lastCommit
+            if(commit.getCommitterIdent().getWhen().after(lastCommit.getCommitterIdent().getWhen())) {
+                lastCommit = commit;
+
+            }
+        }
+        return lastCommit;
+
+    }
+    public void setVersionInfo(List<BugTicket> bugTickets, List<Version> versionList){
 
         for (BugTicket bugTicket : bugTickets) {
 
-            bugTicket.setOpeningVersion(bugTicket.getOvFromCreationDate(versionInfoList));
-            bugTicket.setFixedVersion(bugTicket.getFvFromResolutionDate(versionInfoList));
+            bugTicket.setOpeningVersion(bugTicket.getOvFromCreationDate(versionList));
+            bugTicket.setFixedVersion(bugTicket.getFvFromResolutionDate(versionList));
             bugTicket.setInjectedVersion(bugTicket.getInjectedVersion());
 
         }
@@ -59,39 +81,39 @@ public class BugTicket {
     }
 
     /** Return the ticket correct opening version from opening date*/
-    private VersionInfo getOvFromCreationDate(List<VersionInfo> versionInfoList){
+    private Version getOvFromCreationDate(List<Version> versionList){
         int i =0, flag =0;
-        VersionInfo openingVersion = new VersionInfo();
+        Version openingVersion = new Version();
 
-        for (i=0; i< versionInfoList.size() && flag==0; i++){
-            if (this.getTicketsCreationDate().isBefore(versionInfoList.get(i).getVersionDate())) {
+        for (i=0; i< versionList.size() && flag==0; i++){
+            if (this.getTicketsCreationDate().isBefore(versionList.get(i).getVersionDate())) {
                 flag = 1;
-                openingVersion = versionInfoList.get(i);
+                openingVersion = versionList.get(i);
             }
         }
         if(flag == 0){
             //if it comes here there isn't a valid OV, it may happen with not closed project
             //add the first version ( the NULL one )
-            openingVersion = versionInfoList.get(0);
+            openingVersion = versionList.get(0);
         }
 
         return openingVersion;
     }
 
     /** Return the ticket correct fixed version from resolution date*/
-    private VersionInfo getFvFromResolutionDate(List<VersionInfo> versionInfoList){
+    private Version getFvFromResolutionDate(List<Version> versionList){
         int i, flag =0;
-        VersionInfo fixedVersion =  new VersionInfo();
-        for (i=0; i< versionInfoList.size() && flag==0; i++){
-            if (this.getTicketsResolutionDate().isBefore(versionInfoList.get(i).getVersionDate())){
+        Version fixedVersion =  new Version();
+        for (i=0; i< versionList.size() && flag==0; i++){
+            if (this.getTicketsResolutionDate().isBefore(versionList.get(i).getVersionDate())){
                 flag=1;
-                fixedVersion = versionInfoList.get(i);
+                fixedVersion = versionList.get(i);
             }
         }
         if(flag == 0){
             //if it comes here there isn't a valid FV, it may happen with not closed project
             //add the first version ( the NULL one )
-            fixedVersion = versionInfoList.get(0);
+            fixedVersion = versionList.get(0);
         }
         return fixedVersion;
     }
@@ -114,7 +136,6 @@ public class BugTicket {
 
     }
 
-
     public String getIssueKey(){
         return this.issueKeys;
     }
@@ -125,12 +146,10 @@ public class BugTicket {
         return this.ticketsResolutionDate;
     }
 
-    public VersionInfo getOpeningVersion(){ return this.openingVersion;}
+    public Version getOpeningVersion(){ return this.openingVersion;}
 
-    public VersionInfo getFixedVersion(){ return this.fixedVersion;}
+    public Version getFixedVersion(){ return this.fixedVersion;}
 
-    public VersionInfo getInjectedVersion(){ return this.injectedVersion;}
-
-
+    public Version getInjectedVersion(){ return this.injectedVersion;}
 
 }
