@@ -3,7 +3,6 @@ package ISW2.DataRetriever.retriever;
 import ISW2.DataRetriever.model.BugTicket;
 import ISW2.DataRetriever.model.VersionInfo;
 import ISW2.DataRetriever.util.URLBuilder;
-import ISW2.DataRetriever.util.VersionInfoUtil;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -71,7 +70,7 @@ public class JiraRetriever {
                 VersionInfo affectedV = new VersionInfo();
 
                 for(int i=0; i< issuesKeys.size();i++){
-                    affectedV = VersionInfoUtil.getVersionInfoFromName(affectedVersion.get(i),versionInfoList);
+                    affectedV = VersionInfo.getVersionInfoFromName(affectedVersion.get(i),versionInfoList);
                     BugTicket bugTicket = new BugTicket(issuesKeys.get(i), ticketsCreationDate.get(i), ticketsResolutionDate.get(i), affectedV);
                     bugTickets.add(bugTicket);
                 }

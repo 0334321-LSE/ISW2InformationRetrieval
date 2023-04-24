@@ -13,12 +13,9 @@ public class CSVWriter {
     public static void writeCsvPerRelease(String projName, List<ClassInfo> javaClassesList, int lastVersionID) throws IOException {
 
         //In the first iteration of walk forward, testing set is composed of second release classes
-        for(int i=1; i<=lastVersionID; i++) {
-            List<ClassInfo> remainingJavaClassesList = ClassInfoUtil.filterJavaClassesByVersion(javaClassesList, i);
-            if ( remainingJavaClassesList.size() == 0 )
-                //TODO skip if there isn't class in that version
-                continue;;
-            ClassInfoFile labelingTesting = new ClassInfoFile(projName, CsvEnumaration.TESTING, i-1, remainingJavaClassesList);
+        for(int i=2; i<=lastVersionID; i++) {
+            List<ClassInfo> iterJavaClassesList = ClassInfoUtil.filterJavaClassesByRelease(javaClassesList, i);
+            ClassInfoFile labelingTesting = new ClassInfoFile(projName, CsvEnumaration.TESTING, i-1, iterJavaClassesList);
             labelingTesting.writeOnArff(false);	//"true" indicates that csv file will be deleted and only arff file will remain
 
         }

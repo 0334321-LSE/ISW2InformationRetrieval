@@ -1,59 +1,19 @@
-package ISW2.DataRetriever.model;
+package ISW2.DataRetriever.util;
 
+import ISW2.DataRetriever.model.BugTicket;
+import ISW2.DataRetriever.model.CommitInfo;
+import ISW2.DataRetriever.model.VersionInfo;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-public class CommitInfo {
-    private VersionInfo versionInfo;
-    private List<RevCommit> commitList;
-    private RevCommit lastCommit;
-    private Map<String,String> javaClasses;
+public class CommitInfoUtil {
+    private CommitInfoUtil(){throw new IllegalStateException("This class does not have to be instantiated.");}
 
-    public CommitInfo(VersionInfo version,List<RevCommit> commitList, RevCommit lastCommit){
-        this.versionInfo = version;
-        this.commitList=commitList;
-        this.lastCommit=lastCommit;
-        this.javaClasses=null;
-    }
-
-    public VersionInfo getVersionInfo() {
-        return versionInfo;
-    }
-
-    private void setVersionInfo(VersionInfo versionInfo) {
-        this.versionInfo = versionInfo;
-    }
-
-    public List<RevCommit> getCommitList() {
-        return commitList;
-    }
-
-    private void setCommitList(List<RevCommit> commitList) {
-        this.commitList = commitList;
-    }
-
-    public RevCommit getLastCommit() {
-        return lastCommit;
-    }
-
-    private void setLastCommit(RevCommit lastCommit) {
-        this.lastCommit = lastCommit;
-    }
-
-    public Map<String, String> getJavaClasses() {
-        return javaClasses;
-    }
-
-    public void setJavaClasses(Map<String, String> javaClasses) {
-        this.javaClasses = javaClasses;
-    }
-
-    /** Return commitInfo from a version*/
+    /** Return commitInfo from a versionInfo*/
     public static CommitInfo getCommitsOfVersion(List<RevCommit> commitsList, VersionInfo versionInfo, LocalDate firstDate) {
 
         List<RevCommit> matchingCommits = new ArrayList<>();
@@ -69,7 +29,6 @@ public class CommitInfo {
 
         }
         RevCommit lastCommit = null;
-        //TODO ASK PROF. WHAT WE DO WHEN A RELEASE DOESN'T HAVE COMMITS
         if(!matchingCommits.isEmpty())
             lastCommit = getLastCommit(matchingCommits);
 
@@ -91,7 +50,16 @@ public class CommitInfo {
 
     }
 
-    /** From commit gets version*/
+    public void getRemainingCommits(List<BugTicket> bugTicketList, List<RevCommit> commitList) {
+        List<RevCommit> remainingCommit = new ArrayList<>();
+        for (BugTicket bugTicket: bugTicketList){
+            remainingCommit.addAll(bugTicket.getAssociatedCommit());
+        }
+        commitList.removeAll(commitList);
+        commitList.addAll(remainingCommit);
+    }
+
+    /** From one commit gets corresponding version*/
     public static VersionInfo getVersionOfCommit(RevCommit commit, List<CommitInfo> CommitsInfo) {
 
         for(CommitInfo relComm : CommitsInfo) {
@@ -106,6 +74,5 @@ public class CommitInfo {
         return null;
 
     }
-
 
 }
