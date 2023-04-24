@@ -55,15 +55,6 @@ public class VersionInfo {
         System.out.print(" | ID: "+this.versionId+" |");
     }
 
-    public static VersionInfo getVersionInfoFromName (String name, List<VersionInfo> list){
-            for (VersionInfo version: list){
-                if( version.getVersionName().equals(name))
-                    return version;
-            }
-            //if it doesn't find anything return null version
-            return list.get(0);
-    }
-
     public Map<String, Integer> getVersionInteger(List<VersionInfo> versionInfoList){
         Map<String,Integer> versionMap = new LinkedHashMap<>();
         int i=0;
@@ -75,20 +66,5 @@ public class VersionInfo {
         return versionMap;
     }
 
-    public static VersionInfo getLastVersion (List<VersionInfo> versionInfoList){
-        return versionInfoList.get(versionInfoList.size()-1);
-    }
-    //TODO create util classes for all model classes, put into those static method etc...
-    public static VersionInfo getVersionOfCommit(RevCommit commit, List<CommitInfo> CommitsAssociatedWithVersion){
-        for(CommitInfo commitInfo : CommitsAssociatedWithVersion) {
-            for(RevCommit c : commitInfo.getCommitList()) {
-                if(c.equals(commit)) {
-                    return commitInfo.getVersionInfo();
-                }
 
-            }
-
-        }
-        return null;
-    }
 }

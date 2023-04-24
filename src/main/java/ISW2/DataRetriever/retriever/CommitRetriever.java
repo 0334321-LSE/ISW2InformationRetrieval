@@ -21,7 +21,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static ISW2.DataRetriever.model.CommitInfo.getCommitsOfVersion;
+import static ISW2.DataRetriever.util.CommitInfoUtil.getCommitsOfVersion;
 
 public class CommitRetriever {
 
@@ -144,12 +144,5 @@ public class CommitRetriever {
         bugTicketList.removeIf(bugTicket-> bugTicket.getAssociatedCommit().size()==0);
     }
 
-    public void getRemainingCommits(List<BugTicket> bugTicketList, List<RevCommit> commitList) {
-        List<RevCommit> remainingCommit = new ArrayList<>();
-        for (BugTicket bugTicket: bugTicketList){
-            remainingCommit.addAll(bugTicket.getAssociatedCommit());
-        }
-        commitList.removeAll(commitList);
-        commitList.addAll(remainingCommit);
-    }
+
 }
