@@ -18,12 +18,15 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static isw2_data_retriever.model.VersionInfo.getCommitsOfVersion;
 
 public class CommitRetriever {
+
+    private static final Logger LOGGER = Logger.getLogger(CommitRetriever.class.getName());
 
     private List<Version> versionList;
 
@@ -64,9 +67,8 @@ public class CommitRetriever {
         }
 
         discardTicketWithoutCommit(bugTicketList);
-        //getRemainingCommits(bugTicketList,commitList);
-        System.out.println("\nValid ticket with associated commits are: "+bugTicketList.size());
-        System.out.println("\nRemaining commits are: "+countCommit(bugTicketList));
+        LOGGER.info("\nValid ticket with associated commits are: "+bugTicketList.size()+
+                "\nRemaining commits are: "+countCommit(bugTicketList));
 
     }
 
@@ -118,7 +120,7 @@ public class CommitRetriever {
     }
 
     private void saveAllCommitsOnJSON(List<RevCommit> commitList, String projectName ) throws IOException {
-        FileWriter file = new FileWriter("./projectsCommits/"+projectName+"Commits.json");
+        FileWriter file = new FileWriter("./retrieved_data/projectsCommits/"+projectName+"Commits.json");
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("ProjectName", projectName);
         JSONArray jsonArray = new JSONArray();

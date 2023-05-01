@@ -85,12 +85,12 @@ public class VersionInfo {
     }
 
     /** From commit gets version*/
-    public static Version getVersionOfCommit(RevCommit commit, List<VersionInfo> CommitsInfo) {
+    public static Version getVersionOfCommit(RevCommit commit, List<VersionInfo> versionInfoList) {
 
-        for(VersionInfo relComm : CommitsInfo) {
-            for(RevCommit c : relComm.getCommitList()) {
+        for(VersionInfo versionAssociatedCommit : versionInfoList) {
+            for(RevCommit c : versionAssociatedCommit.getCommitList()) {
                 if(c.equals(commit)) {
-                    return relComm.getVersion();
+                    return versionAssociatedCommit.getVersion();
                 }
 
             }

@@ -8,6 +8,7 @@ import isw2_data_retriever.model.Version;
 import isw2_data_retriever.retriever.ClassInfoRetriever;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +22,7 @@ public class CSVWriter {
             List<ClassInfo> filteredJavaClassesList = ClassInfoUtil.filterJavaClassesByVersion(javaClassesList, i);
             if(filteredJavaClassesList.size() == 0)
                 continue;
-            ClassInfoFile labelingTesting = new ClassInfoFile(projName, CsvEnumaration.TESTING, i-1, filteredJavaClassesList);
+            ClassInfoFile labelingTesting = new ClassInfoFile(projName, CsvEnumaration.TESTING, 0, i, filteredJavaClassesList);
             labelingTesting.writeOnArff(false);	//"true" indicates that csv file will be deleted and only arff file will remain
 
         }
@@ -36,26 +37,29 @@ public class CSVWriter {
         //Since it has 2 version, start WalkForward
         for(int i=2; i<=end; i++){
             List<ClassInfo> filteredTrainingJavaClassesList = new ArrayList<>();
-            // TODO quando facciamo labeling delle classi, consideriamo i ticket fino all'ultima versione di training per le training classes e una versione in più per testing classes
-            //TODO RECALCULATE BUGGYNESS
+
             for (int j=1; j<i; j++){
                 int versionID = versionInfoList.get(j-1).getVersion().getVersionInt();
                 //Get classes until the version under testing
                 List<ClassInfo> temporaryFilteredJavaClassesList = ClassInfoUtil.filterJavaClassesByVersion(javaClassesList,versionID );
                 filteredTrainingJavaClassesList.addAll(temporaryFilteredJavaClassesList);
             }
-            int versionID = versionInfoList.get(i-1).getVersion().getVersionInt();
-            classInfoRetriever.labelClassesUntilVersionID(versionInfoList,filteredTrainingJavaClassesList,versionID);
+            int trainingVersionID = versionInfoList.get(i-2).getVersion().getVersionInt();
+            classInfoRetriever.labelClassesUntilVersionID(versionInfoList,filteredTrainingJavaClassesList,trainingVersionID);
 
-            ClassInfoFile labelingTraining = new ClassInfoFile(projName, CsvEnumaration.TRAINING, i-1, filteredTrainingJavaClassesList);
+            ClassInfoFile labelingTraining = new ClassInfoFile(projName, CsvEnumaration.TRAINING, i-1, i-1, filteredTrainingJavaClassesList);
             labelingTraining.writeOnArff(false);
 
-            List<ClassInfo> filteredTestingJavaClassesList = ClassInfoUtil.filterJavaClassesByVersion(javaClassesList, versionID);
-            classInfoRetriever.labelClassesUntilVersionID(versionInfoList,filteredTestingJavaClassesList,versionID);
+            int testingVersionID = versionInfoList.get(i-1).getVersion().getVersionInt();
 
-            ClassInfoFile labelingTesting = new ClassInfoFile(projName, CsvEnumaration.TESTING, i, filteredTestingJavaClassesList);
+            List<ClassInfo> filteredTestingJavaClassesList = ClassInfoUtil.filterJavaClassesByVersion(javaClassesList, testingVersionID);
+
+            classInfoRetriever.labelClasses(versionInfoList,filteredTestingJavaClassesList);
+
+            ClassInfoFile labelingTesting = new ClassInfoFile(projName, CsvEnumaration.TESTING, i-1, i, filteredTestingJavaClassesList);
             labelingTesting.writeOnArff(false);
 
         }
     }
+
 }

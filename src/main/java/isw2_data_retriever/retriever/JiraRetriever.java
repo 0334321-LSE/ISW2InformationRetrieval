@@ -14,10 +14,13 @@ import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.logging.Logger;
 
 import static java.lang.Integer.parseInt;
 
 public class JiraRetriever {
+
+    private static final Logger LOGGER = Logger.getLogger(JiraRetriever.class.getName());
 
     //todo commenta tutti i metodi con il loro scopo
     /** This method return a list that contains all bug tickets from jira*/
@@ -30,7 +33,7 @@ public class JiraRetriever {
         int issuesNumber;
 
         //Create JSON file with Jira bug tickets
-        FileWriter file = new FileWriter("./projectsTickets/"+projectName+"JiraTicket.json");
+        FileWriter file = new FileWriter("./retrieved_data/projectsTickets/"+projectName+"JiraTicket.json");
 
         ArrayList<String> issuesKeys = new ArrayList<>();
         ArrayList<LocalDate> ticketsCreationDate = new ArrayList<>();
@@ -65,9 +68,9 @@ public class JiraRetriever {
         try {
             if(!issuesKeys.isEmpty() && !ticketsCreationDate.isEmpty() && !ticketsResolutionDate.isEmpty())
             {
-                System.out.println("\n---------------------------------------------------------------------------");
-                System.out.println("\n"+projectName.toUpperCase()+" issue tickets acquired");
-                Version affectedV = new Version();
+                LOGGER.info("\n---------------------------------------------------------------------------"+
+                        "\n"+projectName.toUpperCase()+" issue tickets acquired");
+                Version affectedV;
 
                 for(int i=0; i< issuesKeys.size();i++){
                     affectedV = Version.getVersionInfoFromName(affectedVersion.get(i), versionList);
@@ -77,7 +80,7 @@ public class JiraRetriever {
 
             } else  {throw new Exception("Error during ticket acquisition");}
         }catch (Exception e){
-            System.out.println("Somethings went wrong with issue tickets acquisition");
+            LOGGER.info("Somethings went wrong with issue tickets acquisition");
         }
 
         return bugTickets;

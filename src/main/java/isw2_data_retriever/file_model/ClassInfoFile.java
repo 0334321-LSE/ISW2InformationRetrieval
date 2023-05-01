@@ -7,12 +7,10 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
 
 
@@ -20,25 +18,28 @@ public class ClassInfoFile {
 
     private String projName;
     private CsvEnumaration csvName;
-    private int csvIndex;
+    private int iterationIndex;
+
+    private  int versionIndex;
     private List<ClassInfo> javaClassesList;
 
-    public ClassInfoFile(String projName, CsvEnumaration csvName, int csvIndex, List<ClassInfo> javaClassesList) {
+    public ClassInfoFile(String projName, CsvEnumaration csvName, int iterationIndex, int versionIndex, List<ClassInfo> javaClassesList) {
         this.projName = projName;
         this.csvName = csvName;
-        this.csvIndex = csvIndex;
+        this.iterationIndex = iterationIndex;
+        this.versionIndex = versionIndex;
         this.javaClassesList = javaClassesList;
 
     }
 
-    private String enumToString() {
+    private String enumToFilename() {
 
         switch(csvName) {
 
             case TRAINING:
-                return "_TR" + csvIndex;
+                return "_TR" + versionIndex;
             case TESTING:
-                return "_TE" + csvIndex;
+                return "_TE" + versionIndex;
             case BUGGY:
                 return "_buggy_classes";
             case CURRENT:
@@ -49,18 +50,24 @@ public class ClassInfoFile {
         }
 
     }
+    private String enumToDirectoryName() {
 
+       return this.projName+"_WF_"+this.iterationIndex;
+
+    }
     /** write all the ClassInfo data on a CSV file*/
     public Sheet writeOnCsv() throws IOException {
 
         Sheet sheet;
-        String csvNameStr = enumToString();
+        String fileNameStr = enumToFilename();
         Workbook wb = new HSSFWorkbook();
+
+        String pathname = "./retrieved_data/projectClasses/"+this.projName+"/"  + enumToDirectoryName()+ "/";
+        Files.createDirectories(Path.of(pathname));
+
         //TODO CREATE A DIRECTORY FOR EACH WALK FORWARD ITERATION
-       /* if(this.csvIndex==2){
-            String pathname = "./projectsARFF/" +this.projName.toLowerCase() + csvNameStr + ".csv";
-        }*/
-        try(OutputStream os = new FileOutputStream("./projectsCSV/"+this.projName.toLowerCase()+"/"+ this.projName + csvNameStr + ".csv")) {
+   //"./projectsCSV/"+this.projName.toLowerCase()+"/"+ this.projName + fileNameStr + ".csv"
+        try(OutputStream os = new FileOutputStream(pathname+ this.projName+ fileNameStr +".csv")) {
             sheet = wb.createSheet(this.projName);
 
             for(int i=-1; i<this.javaClassesList.size(); i++) {
@@ -124,11 +131,14 @@ public class ClassInfoFile {
     /**Write for all the ClassInfo elements the data into a ARFF file */
     public void writeOnArff(boolean deleteCsv) throws IOException {
 
-        String csvNameStr = enumToString();
+        String fileNameStr = enumToFilename();
         Sheet sheet = writeOnCsv();
-        try(FileWriter wr = new FileWriter("./projectsARFF/"+this.projName.toLowerCase()+"/"+ this.projName + csvNameStr + ".arff")) {
 
-            wr.write("@relation " + this.projName + csvNameStr + "\n");
+        String pathname = "./retrieved_data/projectClasses/"+this.projName+"/" + enumToDirectoryName()+ "/";
+        Files.createDirectories(Path.of(pathname));
+        try(FileWriter wr = new FileWriter(pathname+ this.projName+ fileNameStr+".arff")) {
+
+            wr.write("@relation " + this.projName + fileNameStr + "\n");
             wr.write("@attribute SIZE numeric\n");
             wr.write("@attribute NR numeric\n");
             wr.write("@attribute NFix numeric\n");
@@ -165,7 +175,7 @@ public class ClassInfoFile {
         }
 
         if(deleteCsv) {
-            Files.delete(Paths.get("./projectsCSV/"+this.projName.toLowerCase()+"/"+ this.projName + csvNameStr +".csv"));
+            Files.delete(Paths.get(pathname+".csv"));
         }
 
     }

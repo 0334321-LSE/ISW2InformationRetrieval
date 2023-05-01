@@ -77,10 +77,20 @@ public class ClassInfoRetriever {
 	 * - Release
 	 * - Binary value "isBuggy"*/
 
+    /**Used to label the buggy of training set classes, with snoring, so without using all the tickets */
     public void labelClassesUntilVersionID(List<VersionInfo> versionInfoList, List<ClassInfo> javaClasses, int versionID) throws GitAPIException, IOException {
         List<BugTicket> bugTicketList = VersionUtil.getAssociatedTicket(this.ticketsWithAV,versionID);
-        //TODO label classes only for the ticket remaining ticket
+        //label classes only with the available tickets in that version
         for(BugTicket ticket : bugTicketList) {
+            doLabeling(javaClasses, ticket, versionInfoList);
+
+        }
+
+    }
+    /**Used to label the buggy of testing set classes, without snoring using all the tickets */
+    public void labelClasses(List<VersionInfo> versionInfoList, List<ClassInfo> javaClasses) throws GitAPIException, IOException {
+        //Label testing set with all the available tickets
+        for(BugTicket ticket : this.ticketsWithAV) {
             doLabeling(javaClasses, ticket, versionInfoList);
 
         }
@@ -89,17 +99,17 @@ public class ClassInfoRetriever {
 
     private void doLabeling(List<ClassInfo> javaClasses, BugTicket ticket, List<VersionInfo> versionInfoList) throws GitAPIException, IOException {
 
-        List<RevCommit> commitsAssociatedWIssue = ticket.getAssociatedCommit();
+        List<RevCommit> ticketAssociatedCommit = ticket.getAssociatedCommit();
         //TODO fix comments
-        for(RevCommit commit : commitsAssociatedWIssue) {
+        for(RevCommit commit : ticketAssociatedCommit) {
             Version associatedVersion = VersionInfo.getVersionOfCommit(commit, versionInfoList);
             //associatedVersion can be null if commit date is after last release date; in that case we ignore the commit
             //(it is trying to fix a issue that hypothetically should be already closed)
             if(associatedVersion != null) {
                 List<String> modifiedClasses = getModifiedClasses(commit);
 
-                for(String modifClass : modifiedClasses) {
-                    updateJavaClassBuggyness(javaClasses, modifClass, ticket.getInjectedVersion(), associatedVersion);
+                for(String modifiedClass : modifiedClasses) {
+                    updateJavaClassBuggyness(javaClasses, modifiedClass, ticket.getInjectedVersion(), associatedVersion);
 
                 }
 

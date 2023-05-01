@@ -2,15 +2,18 @@ package isw2_data_retriever.control;
 
 import isw2_data_retriever.model.BugTicket;
 import isw2_data_retriever.model.Version;
+import isw2_data_retriever.retriever.CommitRetriever;
 import isw2_data_retriever.retriever.JiraRetriever;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 
 public class Proportion {
+    private static final Logger LOGGER = Logger.getLogger(Proportion.class.getName());
 
     private static final String[] PROJECT_NAMES = {"bookkeeper", "avro", "openjpa", "storm", "zookeeper", "syncope","tajo"};
 
@@ -20,11 +23,11 @@ public class Proportion {
         ticketInfoRetriever.setVersionInfo(bugTickets, versionList);
         //ticketInfoRetriever.printVersionInformationList(bugTickets);
 
-        System.out.println("\n ----------------------------------------------");
-        System.out.println("Using cold start to obtains proportion value");
+        LOGGER.info("\n ----------------------------------------------\n"+
+                "Using cold start to obtains proportion value");
         double proportionValue = calculateProportionValueWithColdStart(projectName);
-        System.out.println("\n ----------------------------------------------");
-        System.out.println("The proportion value from cold start is --> "+proportionValue);
+        LOGGER.info("\n ----------------------------------------------\n"+
+                "The proportion value from cold start is --> "+proportionValue);
         proportionForInjectVersion(bugTickets,proportionValue, versionList);
 
         //ticketInfoRetriever.printVersionInformationList(bugTickets);
@@ -141,7 +144,7 @@ public class Proportion {
                 List<BugTicket> bugTicketsForProportion = correctBugTicketListForProportioning(bugTickets, versionList);
                 localProportionValue = calculateProportioningCoefficient(bugTicketsForProportion, versionList);
                 proportionValue += localProportionValue;
-                System.out.println("\nProportion value for "+project.toUpperCase()+" is--> "+localProportionValue);
+                LOGGER.info("\nProportion value for "+project.toUpperCase()+" is--> "+localProportionValue+"\n");
 
             }
         }

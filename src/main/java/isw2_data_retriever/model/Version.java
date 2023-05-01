@@ -1,13 +1,16 @@
 package isw2_data_retriever.model;
 
+import isw2_data_retriever.control.ExecutionFlow;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class Version {
+    private static final Logger LOGGER = Logger.getLogger(Version.class.getName());
 
     private String versionName ;
     private LocalDate versionDate ;
@@ -28,31 +31,19 @@ public class Version {
         return versionInt;
     }
 
-    public void setVersionInt(int versionInt) {
-        this.versionInt = versionInt;
-    }
 
     public LocalDate getVersionDate() {
         return versionDate;
-    }
-
-    public void setVersionDate(LocalDate versionDate) {
-        this.versionDate = versionDate;
     }
 
     public String getVersionName() {
         return versionName;
     }
 
-    public void setVersionName(String versionName) {
-        this.versionName = versionName;
-    }
 
     public void printVersionInfo(){
-        System.out.println("\n ----------------------------------------------");
-        System.out.print("| Name: "+this.versionName);
-        System.out.print(" | Date: "+this.versionDate);
-        System.out.print(" | ID: "+this.versionId+" |");
+        LOGGER.info("\n ----------------------------------------------\n| Name: "
+                +this.versionName+"\n| Date: "+this.versionDate+"\n| ID: "+this.versionId+" |");
     }
 
     public static Version getVersionInfoFromName (String name, List<Version> list){
@@ -75,9 +66,6 @@ public class Version {
         return versionMap;
     }
 
-    public static Version getLastVersion (List<Version> versionList){
-        return versionList.get(versionList.size()-1);
-    }
     public static Version getVersionOfCommit(RevCommit commit, List<VersionInfo> CommitsAssociatedWithVersion){
         for(VersionInfo versionInfo : CommitsAssociatedWithVersion) {
             for(RevCommit c : versionInfo.getCommitList()) {

@@ -20,5 +20,9 @@ In tal caso si è scelto di settare la injected version come NULL e di scartarli
 8)Vengono scartati i commit che non sono associabili ad alcuna versione tra quelle ricavate
 da Jira, questo capita per esempio in bookkeeper in cui in Jira mancano le versioni più recenti.
 
-9)Quando si fa walk forward si ricalcola la buggyness ad ogni iterazione con i ticket disponibili
-fino a quelli della versione di testing (inclusa)
+9)Walk forward: si ricalcola la buggyness ad ogni iterazione con i ticket disponibili
+fino a quelli della versione di testing (esclusa), quindi c'è snoring nel training set, non
+vogliamo usare dati futuri per migliorare la bontà della predizione
+
+10)Walk forward: per il labeling del testing vengono usati tutti i ticket a dispozione in modo
+da limitare lo snoring e quindi avere un set da predirre che sia il più veritiero possibile.
