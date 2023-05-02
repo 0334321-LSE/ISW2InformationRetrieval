@@ -50,7 +50,7 @@ public class ClassInfoFile {
         }
 
     }
-    private String enumToDirectoryName() {
+    private String enumToWFDirectoryName() {
 
        return this.projName+"_WF_"+this.iterationIndex;
 
@@ -62,7 +62,7 @@ public class ClassInfoFile {
         String fileNameStr = enumToFilename();
         Workbook wb = new HSSFWorkbook();
 
-        String pathname = "./retrieved_data/projectClasses/"+this.projName+"/"  + enumToDirectoryName()+ "/";
+        String pathname = "./retrieved_data/projectClasses/"+this.projName+"/"  + enumToWFDirectoryName()+ "/";
         Files.createDirectories(Path.of(pathname));
 
         //TODO CREATE A DIRECTORY FOR EACH WALK FORWARD ITERATION
@@ -134,7 +134,7 @@ public class ClassInfoFile {
         String fileNameStr = enumToFilename();
         Sheet sheet = writeOnCsv();
 
-        String pathname = "./retrieved_data/projectClasses/"+this.projName+"/" + enumToDirectoryName()+ "/";
+        String pathname = "./retrieved_data/projectClasses/"+this.projName+"/" + enumToWFDirectoryName()+ "/";
         Files.createDirectories(Path.of(pathname));
         try(FileWriter wr = new FileWriter(pathname+ this.projName+ fileNameStr+".arff")) {
 

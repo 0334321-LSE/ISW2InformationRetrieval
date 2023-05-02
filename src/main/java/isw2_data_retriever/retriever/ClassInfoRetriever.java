@@ -4,6 +4,7 @@ import isw2_data_retriever.model.BugTicket;
 import isw2_data_retriever.model.ClassInfo;
 import isw2_data_retriever.model.VersionInfo;
 import isw2_data_retriever.model.Version;
+import isw2_data_retriever.util.ClassInfoUtil;
 import isw2_data_retriever.util.VersionUtil;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -80,6 +81,7 @@ public class ClassInfoRetriever {
     /**Used to label the buggy of training set classes, with snoring, so without using all the tickets */
     public void labelClassesUntilVersionID(List<VersionInfo> versionInfoList, List<ClassInfo> javaClasses, int versionID) throws GitAPIException, IOException {
         List<BugTicket> bugTicketList = VersionUtil.getAssociatedTicket(this.ticketsWithAV,versionID);
+        ClassInfoUtil.initializateBuggyness(javaClasses);
         //label classes only with the available tickets in that version
         for(BugTicket ticket : bugTicketList) {
             doLabeling(javaClasses, ticket, versionInfoList);
@@ -89,6 +91,7 @@ public class ClassInfoRetriever {
     }
     /**Used to label the buggy of testing set classes, without snoring using all the tickets */
     public void labelClasses(List<VersionInfo> versionInfoList, List<ClassInfo> javaClasses) throws GitAPIException, IOException {
+        ClassInfoUtil.initializateBuggyness(javaClasses);
         //Label testing set with all the available tickets
         for(BugTicket ticket : this.ticketsWithAV) {
             doLabeling(javaClasses, ticket, versionInfoList);

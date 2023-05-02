@@ -41,24 +41,24 @@ public class JiraRetriever {
         ArrayList<String> affectedVersion = new ArrayList<>();
 
         do {
-                    String urlString = urlBuilder.completeUrl(startPoint, maxAmount, urlFirstPart) ;
+            String urlString = urlBuilder.completeUrl(startPoint, maxAmount, urlFirstPart) ;
 
-                    URI uri2 = new URI(urlString) ;
-                    URL url2 = uri2.toURL() ;
+            URI uri2 = new URI(urlString) ;
+            URL url2 = uri2.toURL() ;
 
-                    String jsonString = getJsonString(url2) ;
-                    file.write(jsonString+"\n");
+            String jsonString = getJsonString(url2) ;
+            file.write(jsonString+"\n");
 
-                    JSONObject jsonObject =  new JSONObject(jsonString) ;
-                    issuesNumber = parseInt(jsonObject.get("total").toString());
+            JSONObject jsonObject =  new JSONObject(jsonString) ;
+            issuesNumber = parseInt(jsonObject.get("total").toString());
 
-                    JSONArray jsonIssueArray = jsonObject.getJSONArray("issues") ;
+            JSONArray jsonIssueArray = jsonObject.getJSONArray("issues") ;
 
 
-                    parseIssuesArray(issuesKeys, jsonIssueArray) ;
-                    parseCreationDate(ticketsCreationDate, jsonIssueArray);
-                    parseResolutionDate(ticketsResolutionDate,jsonIssueArray);
-                    parseAffectedVersion(affectedVersion, jsonIssueArray, versionList);
+            parseIssuesArray(issuesKeys, jsonIssueArray) ;
+            parseCreationDate(ticketsCreationDate, jsonIssueArray);
+            parseResolutionDate(ticketsResolutionDate,jsonIssueArray);
+            parseAffectedVersion(affectedVersion, jsonIssueArray, versionList);
 
 
             startPoint = startPoint + maxAmount ;
