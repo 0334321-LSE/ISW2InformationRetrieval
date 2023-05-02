@@ -1,8 +1,8 @@
-package isw2_data_retriever.util;
+package isw.project.util;
 
-import isw2_data_retriever.model.BugTicket;
-import isw2_data_retriever.model.VersionInfo;
-import isw2_data_retriever.model.Version;
+import isw.project.model.BugTicket;
+import isw.project.model.Version;
+import isw.project.model.VersionInfo;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.time.LocalDate;
@@ -13,7 +13,7 @@ import java.util.List;
 public class VersionInfoUtil {
     private VersionInfoUtil(){throw new IllegalStateException("This class does not have to be instantiated.");}
 
-    /** Return commitInfo from a version*/
+    /** Return VersionInfo: list of matchingCommits for a version*/
     public static VersionInfo getCommitsOfVersion(List<RevCommit> commitsList, Version version, LocalDate firstDate) {
 
         List<RevCommit> matchingCommits = new ArrayList<>();

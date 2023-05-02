@@ -1,4 +1,4 @@
-package isw2_data_retriever.util;
+package isw.project.util;
 
 import org.json.JSONArray;
 

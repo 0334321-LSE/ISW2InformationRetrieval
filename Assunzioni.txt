@@ -2,7 +2,8 @@
 presenti nelle affected version (laddove presenti).
 
 2)Per i ticket in cui non era presente l’injected version si è utilizzato proportion-coldStart
-prendendo i ticket validi di tutti gli altri progetti.
+prendendo i ticket validi di tutti gli altri progetti calcolando per ogni progetto il coeffieciente
+di proportion e raccogliendo la mediana tra questi.
 
 3)Come opening version è stata scelta la prima versione successiva alla creation date del ticket
 

@@ -1,8 +1,8 @@
-package isw2_data_retriever.retriever;
+package isw.project.retriever;
 
-import isw2_data_retriever.model.BugTicket;
-import isw2_data_retriever.model.Version;
-import isw2_data_retriever.util.URLBuilder;
+import isw.project.model.Version;
+import isw.project.util.URLBuilder;
+import isw.project.model.BugTicket;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONObject;

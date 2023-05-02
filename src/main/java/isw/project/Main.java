@@ -1,9 +1,9 @@
-package isw2_data_retriever;
+package isw.project;
 
 
 
 
-import static isw2_data_retriever.control.ExecutionFlow.findProjectData;
+import static isw.project.control.ExecutionFlow.findProjectData;
 
 public class Main {
 

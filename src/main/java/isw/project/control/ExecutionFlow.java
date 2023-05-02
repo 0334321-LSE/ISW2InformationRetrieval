@@ -1,32 +1,34 @@
-package isw2_data_retriever.control;
+package isw.project.control;
 
-import isw2_data_retriever.file_model.EvaluationFile;
-import isw2_data_retriever.model.*;
-import isw2_data_retriever.retriever.ClassInfoRetriever;
-import isw2_data_retriever.retriever.CommitRetriever;
-import isw2_data_retriever.retriever.JiraRetriever;
-import isw2_data_retriever.retriever.WekaRetriever;
-import isw2_data_retriever.util.CSVWriter;
-import org.eclipse.jgit.api.errors.GitAPIException;
+import isw.project.file_model.EvaluationFile;
+import isw.project.model.*;
+import isw.project.retriever.ClassInfoRetriever;
+import isw.project.retriever.CommitRetriever;
+import isw.project.retriever.JiraRetriever;
+import isw.project.retriever.WekaRetriever;
+import isw.project.util.CSVWriter;
 import org.eclipse.jgit.revwalk.RevCommit;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.text.ParseException;
+
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ExecutionFlow {
+
+    /** This private constructor to hide the public one: utility classes do not have to be instantiated. */
+    private ExecutionFlow(){throw new IllegalStateException("This class does not have to be instantiated.");}
     private static final Logger LOGGER = Logger.getLogger(ExecutionFlow.class.getName());
 
+    /** Starts the operation flow of the program */
     public static void findProjectData(String projectName) throws Exception {
         String repoPath = "C:\\Users\\39388\\OneDrive\\Desktop\\ISW2\\Projects\\GitRepository\\" ;
 
         //Retrieve info from JIRA and execute proportion
         JiraRetriever retriever = new JiraRetriever() ;
         List<Version> versionList = retriever.retrieveVersions(projectName) ;
-        LOGGER.info("\n ----------------------------------------------\n\t\t\t"+projectName.toUpperCase()+" versions list N:" + versionList.size());
+        LOGGER.log(Level.INFO,"\n ----------------------------------------------\n\t\t\t {} versions list N:"+versionList.size()
+                ,projectName.toUpperCase());
         retriever.printVersionList(versionList);
         List<BugTicket> bugTickets = retriever.retrieveBugTicket(projectName, versionList) ;
         Proportion.proportion(bugTickets, versionList,projectName);
@@ -52,12 +54,12 @@ public class ExecutionFlow {
         //Create arff file for WalkForward validation technique
         CSVWriter.writeArffForWalkForward(projectName,javaClassesList,versionInfoList, classInfoRetriever);
 
-        int WFIterationNumber;
-        if (versionInfoList.size()%2 == 0) WFIterationNumber = versionInfoList.size()/2 +1;
-        else WFIterationNumber = (versionInfoList.size()+1)/2;
+        int wfIterationNumber;
+        if (versionInfoList.size()%2 == 0) wfIterationNumber = versionInfoList.size()/2 +1;
+        else wfIterationNumber = (versionInfoList.size()+1)/2;
 
         //Uses WekaAPI to obtains accuracy metrics of classifiers
-        WekaRetriever wekaRetriever = new WekaRetriever(projectName,WFIterationNumber);
+        WekaRetriever wekaRetriever = new WekaRetriever(projectName,wfIterationNumber);
         List<ClassifierEvaluation> allEvaluation =  wekaRetriever.testWekaApi();
 
         //Save on csv the results

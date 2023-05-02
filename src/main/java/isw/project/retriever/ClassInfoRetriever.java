@@ -1,11 +1,11 @@
-package isw2_data_retriever.retriever;
+package isw.project.retriever;
 
-import isw2_data_retriever.model.BugTicket;
-import isw2_data_retriever.model.ClassInfo;
-import isw2_data_retriever.model.VersionInfo;
-import isw2_data_retriever.model.Version;
-import isw2_data_retriever.util.ClassInfoUtil;
-import isw2_data_retriever.util.VersionUtil;
+import isw.project.model.Version;
+import isw.project.model.VersionInfo;
+import isw.project.model.BugTicket;
+import isw.project.model.ClassInfo;
+import isw.project.util.ClassInfoUtil;
+import isw.project.util.VersionUtil;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -27,13 +27,13 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static isw2_data_retriever.model.ClassInfo.updateJavaClassBuggyness;
+import static isw.project.model.ClassInfo.updateJavaClassBuggyness;
 
 public class ClassInfoRetriever {
 
-    private Git git;
-    private Repository repo;
-    private List<Version> versionList;
+    private Git gitReference;
+    private Repository repository;
+    private final List<Version> versionList;
     private List<BugTicket> ticketsWithAV;
 
     public ClassInfoRetriever(String repoPath, List<Version> versionList, List<BugTicket> bugTicketList) throws IOException {
@@ -41,8 +41,8 @@ public class ClassInfoRetriever {
         Repository repo = repositoryBuilder.setGitDir(new File(repoPath + "/.git")).build() ;
         Git git = new Git(repo) ;
 
-        this.git = git;
-        this.repo= git.getRepository();
+        this.gitReference = git;
+        this.repository = git.getRepository();
         this.versionList = versionList;
 
         this.ticketsWithAV = bugTicketList;
@@ -55,7 +55,7 @@ public class ClassInfoRetriever {
         Map<String, String> javaClasses = new HashMap<>();
 
         RevTree tree = commit.getTree();	//We get the tree of the files and the directories that were belonging to the repository when commit was pushed
-        TreeWalk treeWalk = new TreeWalk(this.repo);	//We use a TreeWalk to iterate over all files in the Tree recursively
+        TreeWalk treeWalk = new TreeWalk(this.repository);	//We use a TreeWalk to iterate over all files in the Tree recursively
         treeWalk.addTree(tree);
         treeWalk.setRecursive(true);
 
@@ -63,7 +63,7 @@ public class ClassInfoRetriever {
             //We are keeping only Java classes that are not involved in tests
             if(treeWalk.getPathString().contains(".java") && !treeWalk.getPathString().contains("/test/")) {
                 //We are retrieving (name class, content class) couples
-                javaClasses.put(treeWalk.getPathString(), new String(this.repo.open(treeWalk.getObjectId(0)).getBytes(), StandardCharsets.UTF_8));
+                javaClasses.put(treeWalk.getPathString(), new String(this.repository.open(treeWalk.getObjectId(0)).getBytes(), StandardCharsets.UTF_8));
             }
         }
         treeWalk.close();
@@ -100,10 +100,11 @@ public class ClassInfoRetriever {
 
     }
 
-    private void doLabeling(List<ClassInfo> javaClasses, BugTicket ticket, List<VersionInfo> versionInfoList) throws GitAPIException, IOException {
+    /**For each commit, obtain associated version, the classes modified in that version and update buggy metrics*/
+    private void doLabeling(List<ClassInfo> javaClasses, BugTicket ticket, List<VersionInfo> versionInfoList) throws IOException {
 
         List<RevCommit> ticketAssociatedCommit = ticket.getAssociatedCommit();
-        //TODO fix comments
+
         for(RevCommit commit : ticketAssociatedCommit) {
             Version associatedVersion = VersionInfo.getVersionOfCommit(commit, versionInfoList);
             //associatedVersion can be null if commit date is after last release date; in that case we ignore the commit
@@ -127,7 +128,7 @@ public class ClassInfoRetriever {
         List<String> modifiedClasses = new ArrayList<>();
 
         try(DiffFormatter diffFormatter = new DiffFormatter(DisabledOutputStream.INSTANCE);
-            ObjectReader reader = this.repo.newObjectReader()) {
+            ObjectReader reader = this.repository.newObjectReader()) {
 
             CanonicalTreeParser newTreeIter = new CanonicalTreeParser();
             ObjectId newTree = commit.getTree();
@@ -139,7 +140,7 @@ public class ClassInfoRetriever {
             ObjectId oldTree = commitParent.getTree();
             oldTreeIter.reset(reader, oldTree);
 
-            diffFormatter.setRepository(this.repo);
+            diffFormatter.setRepository(this.repository);
             List<DiffEntry> entries = diffFormatter.scan(oldTreeIter, newTreeIter);
 
             //Every entry contains info for each file involved in the commit (old path name, new path name, change type (that could be MODIFY, ADD, RENAME, etc.))
@@ -221,7 +222,7 @@ public class ClassInfoRetriever {
 
                 RevCommit parentComm = comm.getParent(0);
 
-                diffFormatter.setRepository(this.repo);
+                diffFormatter.setRepository(this.repository);
                 diffFormatter.setDiffComparator(RawTextComparator.DEFAULT);
 
                 List<DiffEntry> diffs = diffFormatter.scan(parentComm.getTree(), comm.getTree());

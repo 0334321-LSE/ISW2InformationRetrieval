@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CsvFileAttributes">
+    <option name="attributeMap">
+      <map>
+        <entry key="\retrieved_data\projectClasses\bookkeeper\bookkeeper_WF_1\bookkeeper_TE2.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="&#9;" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\retrieved_data\projectClasses\bookkeeper\bookkeeper_WF_1\bookkeeper_TR1.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="&#9;" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\retrieved_data\projectClasses\bookkeeper\bookkeeper_WF_2\bookkeeper_TE3.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="&#9;" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\retrieved_data\projectClasses\bookkeeper\bookkeeper_WF_2\bookkeeper_TR2.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="&#9;" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\retrieved_data\projectClasses\bookkeeper\bookkeeper_WF_3\bookkeeper_TE4.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="&#9;" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\retrieved_data\projectClasses\bookkeeper\bookkeeper_WF_3\bookkeeper_TR3.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="&#9;" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\retrieved_data\projectClasses\bookkeeper\bookkeeper_WF_4\bookkeeper_TE5.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="&#9;" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\retrieved_data\projectClasses\bookkeeper\bookkeeper_WF_4\bookkeeper_TR4.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="&#9;" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\retrieved_data\projectClasses\bookkeeper\bookkeeper_WF_5\bookkeeper_TE6.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="&#9;" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\retrieved_data\projectClasses\bookkeeper\bookkeeper_WF_5\bookkeeper_TR5.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="&#9;" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\retrieved_data\projectClasses\bookkeeper\bookkeeper_WF_6\bookkeeper_TE7.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="&#9;" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\retrieved_data\projectClasses\bookkeeper\bookkeeper_WF_6\bookkeeper_TR6.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="&#9;" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\retrieved_data\projectEvaluation\bookkeeper\bookkeeperEvaluation.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

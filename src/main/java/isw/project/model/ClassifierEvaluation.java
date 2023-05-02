@@ -1,4 +1,4 @@
-package isw2_data_retriever.model;
+package isw.project.model;
 
 public class ClassifierEvaluation {
 

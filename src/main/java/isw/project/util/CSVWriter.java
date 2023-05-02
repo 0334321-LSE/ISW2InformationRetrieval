@@ -1,14 +1,13 @@
-package isw2_data_retriever.util;
+package isw.project.util;
 
-import isw2_data_retriever.file_model.ClassInfoFile;
-import isw2_data_retriever.file_model.CsvEnumaration;
-import isw2_data_retriever.model.ClassInfo;
-import isw2_data_retriever.model.VersionInfo;
-import isw2_data_retriever.model.Version;
-import isw2_data_retriever.retriever.ClassInfoRetriever;
+import isw.project.file_model.ClassInfoFile;
+import isw.project.file_model.CsvEnumaration;
+import isw.project.model.ClassInfo;
+import isw.project.model.VersionInfo;
+import isw.project.retriever.ClassInfoRetriever;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
-import java.io.File;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;

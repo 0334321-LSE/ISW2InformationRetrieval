@@ -1,8 +1,8 @@
-package isw2_data_retriever.util;
+package isw.project.util;
 
-import isw2_data_retriever.model.BugTicket;
-import isw2_data_retriever.model.VersionInfo;
-import isw2_data_retriever.model.Version;
+import isw.project.model.BugTicket;
+import isw.project.model.Version;
+import isw.project.model.VersionInfo;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.util.ArrayList;

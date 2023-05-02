@@ -1,6 +1,6 @@
-package isw2_data_retriever.util;
+package isw.project.util;
 
-import isw2_data_retriever.model.ClassInfo;
+import isw.project.model.ClassInfo;
 
 import java.util.ArrayList;
 import java.util.List;

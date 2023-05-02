@@ -1,4 +1,4 @@
-package isw2_data_retriever.model;
+package isw.project.model;
 
 import org.eclipse.jgit.revwalk.RevCommit;
 

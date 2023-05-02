@@ -1,9 +1,9 @@
-package isw2_data_retriever.control;
+package isw.project.control;
 
-import isw2_data_retriever.model.BugTicket;
-import isw2_data_retriever.model.ClassInfo;
-import isw2_data_retriever.model.VersionInfo;
-import isw2_data_retriever.retriever.ClassInfoRetriever;
+import isw.project.model.ClassInfo;
+import isw.project.model.VersionInfo;
+import isw.project.retriever.ClassInfoRetriever;
+import isw.project.model.BugTicket;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.io.IOException;
@@ -25,19 +25,8 @@ public class ComputeMetrics {
         this.bugTicketList = bugTicketList;
     }
 
-    private void computeNFix() throws IOException {
-        for (BugTicket bugTicket : this.bugTicketList) {
-            if (bugTicket.getLastCommit() == null)
-                continue;
-            List<String> changedClasses = this.classInfoRetriever.getModifiedClasses(bugTicket.getLastCommit());
-            for (ClassInfo javaClass : this.javaClassesList){
-                if(changedClasses.contains(javaClass.getName()))
-                    javaClass.updateNFix();
-            }
-        }
-    }
 
-    private void computeNFix2() throws IOException {
+    private void computeNFix() throws IOException {
         for (BugTicket bugTicket : this.bugTicketList) {
             if (bugTicket.getLastCommit() == null)
                 continue;
@@ -148,7 +137,7 @@ public class ComputeMetrics {
         computeSize();	//Size = lines of code (LOC) in the class
         computeNR();	//NR = number of commits that have modified the class
         computeNAuth();	//NAuth = number of authors of the class
-        computeNFix2(); //NFix = number of fix ticket that touch the class
+        computeNFix(); //NFix = number of fix ticket that touch the class
         computeLocAndChurn();
         /* LocAdded = sum of number of added LOC in all the commit of the given release
          * MaxLocAdded = max number of added LOC in all the commit of the given release

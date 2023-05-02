@@ -1,5 +1,6 @@
-package isw2_data_retriever.file_model;
+package isw.project.file_model;
 
+import java.io.File;
 import java.io.FileOutputStream;
         import java.io.IOException;
         import java.io.OutputStream;
@@ -7,7 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import isw2_data_retriever.model.ClassifierEvaluation;
+import isw.project.model.ClassifierEvaluation;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
         import org.apache.poi.ss.usermodel.Cell;
         import org.apache.poi.ss.usermodel.Row;
@@ -32,7 +33,7 @@ public class EvaluationFile {
     public void reportEvaluationOnCsv() throws IOException {
 
         Workbook wb = new HSSFWorkbook();
-        String pathname = "./retrieved_data/projectEvaluation/"+this.projName+"/";
+        String pathname = "./retrieved_data/projectEvaluation/"+this.projName+ File.separator;
         Files.createDirectories(Path.of(pathname));
 
         try(OutputStream os = new FileOutputStream(pathname+this.projName+"Evaluation.csv")) {

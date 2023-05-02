@@ -1,19 +1,14 @@
-package isw2_data_retriever.retriever;
+package isw.project.retriever;
 
-import isw2_data_retriever.control.ExecutionFlow;
-import isw2_data_retriever.file_model.EvaluationFile;
-import isw2_data_retriever.model.ClassifierEvaluation;
+import isw.project.model.ClassifierEvaluation;
 import weka.classifiers.lazy.IBk;
 import weka.classifiers.trees.RandomForest;
 import weka.core.Instances;
 
 
 import weka.classifiers.Evaluation;
-import weka.classifiers.meta.FilteredClassifier;
 import weka.classifiers.bayes.NaiveBayes;
-import weka.filters.supervised.instance.Resample;
 import weka.core.converters.ConverterUtils.DataSource;
-import weka.classifiers.evaluation.*;
 
 import java.util.ArrayList;
 import java.util.List;

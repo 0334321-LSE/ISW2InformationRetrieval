@@ -1,12 +1,12 @@
-package isw2_data_retriever.model;
+package isw.project.model;
 
-import isw2_data_retriever.control.ExecutionFlow;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Version {
@@ -42,7 +42,7 @@ public class Version {
 
 
     public void printVersionInfo(){
-        LOGGER.info("\n ----------------------------------------------\n| Name: "
+        LOGGER.log(Level.INFO,"\n ----------------------------------------------\n| Name: "
                 +this.versionName+"\n| Date: "+this.versionDate+"\n| ID: "+this.versionId+" |");
     }
 

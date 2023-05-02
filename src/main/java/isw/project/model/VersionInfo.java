@@ -1,4 +1,4 @@
-package isw2_data_retriever.model;
+package isw.project.model;
 
 import org.eclipse.jgit.revwalk.RevCommit;
 
@@ -34,39 +34,12 @@ public class VersionInfo {
         return lastCommit;
     }
 
-    private void setLastCommit(RevCommit lastCommit) {
-        this.lastCommit = lastCommit;
-    }
-
     public Map<String, String> getJavaClasses() {
         return javaClasses;
     }
 
     public void setJavaClasses(Map<String, String> javaClasses) {
         this.javaClasses = javaClasses;
-    }
-
-    /** Return versionInfo from a version*/
-    public static VersionInfo getCommitsOfVersion(List<RevCommit> commitsList, Version version, LocalDate firstDate) {
-
-        List<RevCommit> matchingCommits = new ArrayList<>();
-        LocalDate lastDate = version.getVersionDate();
-
-        for(RevCommit commit : commitsList) {
-            //Cast date to local date then compare
-            LocalDate commitDate = commit.getCommitterIdent().getWhen().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            //if firstDate < commitDate <= lastDate then add the commit in matchingCommits list
-            if(commitDate.isAfter(firstDate) && (commitDate.isBefore(lastDate) || commitDate.equals(lastDate))) {
-                matchingCommits.add(commit);
-            }
-
-        }
-        RevCommit lastCommit = null;
-
-        if(!matchingCommits.isEmpty())
-            lastCommit = getLastCommit(matchingCommits);
-
-        return new VersionInfo(version, matchingCommits, lastCommit);
     }
 
     /** Get last commit from one commit list */

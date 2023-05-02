@@ -1,6 +1,6 @@
-package isw2_data_retriever.file_model;
+package isw.project.file_model;
 
-import isw2_data_retriever.model.ClassInfo;
+import isw.project.model.ClassInfo;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Cell;
@@ -62,11 +62,9 @@ public class ClassInfoFile {
         String fileNameStr = enumToFilename();
         Workbook wb = new HSSFWorkbook();
 
-        String pathname = "./retrieved_data/projectClasses/"+this.projName+"/"  + enumToWFDirectoryName()+ "/";
+        String pathname = "./retrieved_data/projectClasses/"+this.projName+ File.separator  + enumToWFDirectoryName()+ File.separator;
         Files.createDirectories(Path.of(pathname));
 
-        //TODO CREATE A DIRECTORY FOR EACH WALK FORWARD ITERATION
-   //"./projectsCSV/"+this.projName.toLowerCase()+"/"+ this.projName + fileNameStr + ".csv"
         try(OutputStream os = new FileOutputStream(pathname+ this.projName+ fileNameStr +".csv")) {
             sheet = wb.createSheet(this.projName);
 
@@ -134,7 +132,7 @@ public class ClassInfoFile {
         String fileNameStr = enumToFilename();
         Sheet sheet = writeOnCsv();
 
-        String pathname = "./retrieved_data/projectClasses/"+this.projName+"/" + enumToWFDirectoryName()+ "/";
+        String pathname = "./retrieved_data/projectClasses/"+this.projName+ File.separator + enumToWFDirectoryName()+ File.separator;
         Files.createDirectories(Path.of(pathname));
         try(FileWriter wr = new FileWriter(pathname+ this.projName+ fileNameStr+".arff")) {
 

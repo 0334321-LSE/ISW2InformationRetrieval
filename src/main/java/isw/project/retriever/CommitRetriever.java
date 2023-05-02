@@ -1,8 +1,8 @@
-package isw2_data_retriever.retriever;
+package isw.project.retriever;
 
-import isw2_data_retriever.model.BugTicket;
-import isw2_data_retriever.model.VersionInfo;
-import isw2_data_retriever.model.Version;
+import isw.project.model.Version;
+import isw.project.model.BugTicket;
+import isw.project.model.VersionInfo;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.*;
@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static isw2_data_retriever.model.VersionInfo.getCommitsOfVersion;
+import static isw.project.util.VersionInfoUtil.getCommitsOfVersion;
 
 public class CommitRetriever {
 
