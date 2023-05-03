@@ -7,7 +7,7 @@ public class ClassifierEvaluation {
     private double trainingPercent;
     private String classifier;
     private boolean featureSelection;
-    private boolean sampling;
+    private String sampling;
     private boolean costSensitive;
     private double precision;
     private double recall;
@@ -18,7 +18,7 @@ public class ClassifierEvaluation {
     private double tn;
     private double fn;
 
-    public ClassifierEvaluation(String projName, int index, String classifier, boolean featureSelection, boolean sampling, boolean costSensitive) {
+    public ClassifierEvaluation(String projName, int index, String classifier, boolean featureSelection, String sampling, boolean costSensitive) {
         this.projName = projName;
         this.walkForwardIterationIndex = index;
         this.classifier = classifier;
@@ -89,15 +89,12 @@ public class ClassifierEvaluation {
     /**
      * @return the sampling
      */
-    public boolean isSampling() {
+    public String getSampling() {
         return sampling;
     }
     /**
      * @param sampling the sampling to set
      */
-    public void setSampling(boolean sampling) {
-        this.sampling = sampling;
-    }
 
     /**
      * @return the costSensitive
