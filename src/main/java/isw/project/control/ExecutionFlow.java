@@ -10,6 +10,8 @@ import isw.project.util.CSVWriter;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,7 +24,8 @@ public class ExecutionFlow {
 
     /** Starts the operation flow of the program */
     public static void findProjectData(String projectName) throws Exception {
-        String repoPath = "C:\\Users\\39388\\OneDrive\\Desktop\\ISW2\\Projects\\GitRepository\\" ;
+        // "C:\\Users\\39388\\OneDrive\\Desktop\\ISW2\\Projects\\GitRepository\\"
+        Path repoPath = Paths.get("C:","Users","39388","OneDrive","Desktop","ISW2","Projects","GitRepository",projectName);
 
         //Retrieve info from JIRA and execute proportion
         JiraRetriever retriever = new JiraRetriever() ;
@@ -35,12 +38,12 @@ public class ExecutionFlow {
 
         //Retrieve commits form git for each ticket
         CommitRetriever commitRetriever = new CommitRetriever(versionList) ;
-        List<RevCommit> allCommitsList = commitRetriever.retrieveAllCommitsInfo(repoPath + projectName, projectName);
+        List<RevCommit> allCommitsList = commitRetriever.retrieveAllCommitsInfo(repoPath.toString(), projectName);
         commitRetriever.retrieveCommitFromTickets(bugTickets, allCommitsList);
 
         //For each version, add the list of all commits of that version
         List<VersionInfo> versionInfoList = commitRetriever.getVersionAndCommitsAssociations(allCommitsList, versionList);
-        ClassInfoRetriever classInfoRetriever = new ClassInfoRetriever(repoPath + projectName, versionList,bugTickets);
+        ClassInfoRetriever classInfoRetriever = new ClassInfoRetriever(repoPath.toString(), versionList,bugTickets);
         classInfoRetriever.getVersionAndClassAssociation(versionInfoList);
 
         //Obtain a list of classInfo with all the java classes in the project
@@ -60,7 +63,7 @@ public class ExecutionFlow {
 
         //Uses WekaAPI to obtains accuracy metrics of classifiers
         WekaRetriever wekaRetriever = new WekaRetriever(projectName,wfIterationNumber);
-        List<ClassifierEvaluation> allEvaluation =  wekaRetriever.testWekaApi();
+        List<ClassifierEvaluation> allEvaluation =  wekaRetriever.walkForwardValidation();
 
         //Save on csv the results
         EvaluationFile evaluationFileDetails = new EvaluationFile(projectName, allEvaluation, "details");

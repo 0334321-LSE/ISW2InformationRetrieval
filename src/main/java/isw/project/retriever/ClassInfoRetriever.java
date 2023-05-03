@@ -175,9 +175,10 @@ public class ClassInfoRetriever {
             }
 
         }
-        return javaClasses;
 
+        return javaClasses;
     }
+
 
     /** This method, for each VersionInfo , retrieves all the classes that were present
      * on that version date, and then sets these classes as attribute of the instance*/

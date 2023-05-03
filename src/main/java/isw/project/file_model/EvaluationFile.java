@@ -90,17 +90,14 @@ public class EvaluationFile {
                 cell03.setCellValue(this.evaluationsList.get(i).getClassifier());
 
                 if(this.evaluationsList.get(i).isFeatureSelection()) {
-                    cell04.setCellValue("Greedy backward search");
+                    cell04.setCellValue("Best first");
                 }
                 else {
                     cell04.setCellValue("None");
                 }
-                if(this.evaluationsList.get(i).isSampling()) {
-                    cell05.setCellValue("Undersampling");
-                }
-                else {
-                    cell05.setCellValue("None");
-                }
+
+                cell05.setCellValue(this.evaluationsList.get(i).getSampling());
+
                 if(this.evaluationsList.get(i).isCostSensitive()) {
                     cell06.setCellValue("Sensitive learning");
                 }
