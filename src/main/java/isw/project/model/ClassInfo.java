@@ -149,8 +149,10 @@ public class ClassInfo {
       this.deletedLinesList = new ArrayList<>();
   }
 
-    public boolean isBuggy() {
-        return isBuggy;
+    public String isBuggy() {
+        if(isBuggy) return "true";
+
+        return "false";
     }
 
     public void setBuggy(boolean buggy) {
@@ -183,7 +185,7 @@ public class ClassInfo {
             /*if javaClass has been modified by commit (className contains modified class name) and
             is related to a version v such that iv <= ov < fv, then javaClass is buggy*/
 
-            if(javaClass.getName().equals(className) && javaClass.getVersion().getVersionInt() >= injectedVersion.getVersionInt() && javaClass.getVersion().getVersionInt() <= fixedVersion.getVersionInt()) {
+            if(javaClass.getName().equals(className) && javaClass.getVersion().getVersionInt() >= injectedVersion.getVersionInt() && javaClass.getVersion().getVersionInt() < fixedVersion.getVersionInt()) {
                 javaClass.setBuggy(true);
 
             }

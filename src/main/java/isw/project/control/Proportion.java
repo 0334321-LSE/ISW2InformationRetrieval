@@ -8,8 +8,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 public class Proportion {
@@ -18,9 +16,7 @@ public class Proportion {
         throw new IllegalStateException("This class does not have to be instantiated.");
     }
 
-    private static final Logger LOGGER = Logger.getLogger(Proportion.class.getName());
-
-    private static final String[] PROJECT_NAMES = {"bookkeeper", "avro", "openjpa", "storm", "zookeeper", "syncope","tajo"};
+    private static final String[] PROJECT_NAMES = {"bookkeeper", "avro", "openjpa", "zookeeper", "syncope","tajo"};
 
     /** Use proportion to obtain injected version where there isn't */
     public static void proportion(List<BugTicket> bugTickets, List<Version> versionList, String projectName) throws URISyntaxException, IOException {
@@ -28,10 +24,10 @@ public class Proportion {
         ticketInfoRetriever.setVersionInfo(bugTickets, versionList);
 
 
-        LOGGER.info("\n ----------------------------------------------\n"+
+        System.out.println("\n ----------------------------------------------\n"+
                 "Using cold start to obtains proportion value");
         double proportionValue = calculateProportionValueWithColdStart(projectName);
-        LOGGER.log(Level.INFO,"\n ----------------------------------------------\nThe proportion value from cold start is --> {}",proportionValue);
+        System.out.println("\n ----------------------------------------------\nThe proportion value from cold start is -->"+ proportionValue);
         proportionOnInjectVersion(bugTickets,proportionValue, versionList);
 
         //Discard the invalid tickets after the end of proportion
@@ -66,32 +62,45 @@ public class Proportion {
         //Second control, cut off tickets which have IV>= FV
         bugTicketListForProportion.removeIf(bugTicketProp->bugTicketProp.getInjectedVersion().getVersionInt() >= bugTicketProp.getFixedVersion().getVersionInt());
         //Third control, cut off tickets which have OV>= FV
-        bugTicketListForProportion.removeIf(bugTicketProp->bugTicketProp.getOpeningVersion().getVersionInt() >= bugTicketProp.getFixedVersion().getVersionInt());
+        bugTicketListForProportion.removeIf(bugTicketProp->bugTicketProp.getOpeningVersion().getVersionInt() > bugTicketProp.getFixedVersion().getVersionInt());
         //Fourth control, cut off tickets which have IV = OV = FV
         bugTicketListForProportion.removeIf(bugTicketProp->bugTicketProp.getOpeningVersion().getVersionInt() == bugTicketProp.getFixedVersion().getVersionInt() && bugTicketProp.getInjectedVersion().getVersionInt() == bugTicketProp.getFixedVersion().getVersionInt());
 
         return bugTicketListForProportion;
     }
 
-    /**Calculate proportion coefficient for each apache project and then return the median */
+    /**Calculate proportion coefficient for each apache project and then return the average */
     private static double calculateProportioningCoefficient(List<BugTicket> bugTicketsListForProportion){
 
         ArrayList<Double> proportionValues = new ArrayList<>();
         for( BugTicket bugTicket: bugTicketsListForProportion){
-            // P = (FV-IV)/(FV-OV)
-            proportionValues.add((double) (bugTicket.getFixedVersion().getVersionInt() - bugTicket.getInjectedVersion().getVersionInt()) / (bugTicket.getFixedVersion().getVersionInt() - bugTicket.getOpeningVersion().getVersionInt()));
+           if((bugTicket.getFixedVersion().getVersionInt() == bugTicket.getOpeningVersion().getVersionInt()))
+                // P = (FV-IV)
+                proportionValues.add((double) (bugTicket.getFixedVersion().getVersionInt() - bugTicket.getInjectedVersion().getVersionInt()));
+            else
+                // P = (FV-IV)/(FV-OV)
+                proportionValues.add((double) (bugTicket.getFixedVersion().getVersionInt() - bugTicket.getInjectedVersion().getVersionInt()) / (bugTicket.getFixedVersion().getVersionInt() - bugTicket.getOpeningVersion().getVersionInt()));
         }
-        return  obtainMedian(proportionValues);
+        return  obtainAverage(proportionValues);
     }
 
+    /** Return average of proportionValues */
+    private static double obtainAverage(List<Double> proportionValues){
+        double sum = 0;
+        for ( Double value: proportionValues)
+            sum += value;
+
+        return sum/proportionValues.size();
+    }
     /**Return the median of proportionValues */
     private static double obtainMedian(List<Double> proportionValues){
+        int size =proportionValues.size();
         if(proportionValues.size()%2 != 0)
             //if is odd ( n/2 )
-            return proportionValues.get((proportionValues.size()+1)/2);
+            return proportionValues.get((size+1)/2);
         else
             //if is even ( n/2 + n/2+1 ) /2
-            return (proportionValues.get(proportionValues.size()/2)+ proportionValues.get((proportionValues.size()/2)+1) )/2 ;
+            return (proportionValues.get((size/2)) + proportionValues.get((size/2)+1)) /2;
     }
 
     /** For each bug ticket, use proportion coefficient to calculate IV */
@@ -131,7 +140,7 @@ public class Proportion {
     /** Evaluates the proportion value using cold start technique using all the other projects */
     private static double calculateProportionValueWithColdStart(String projectName) throws URISyntaxException, IOException {
         JiraRetriever retriever = new JiraRetriever() ;
-        double proportionValue = 0;
+        List<Double> proportionValue = new ArrayList<>();
         double localProportionValue;
         for (String project: PROJECT_NAMES){
             if(!project.equals(projectName)){
@@ -144,12 +153,12 @@ public class Proportion {
                 ticketInfoRetriever.setVersionInfo(bugTickets, versionList);
                 List<BugTicket> bugTicketsForProportion = correctBugTicketListForProportioning(bugTickets);
                 localProportionValue = calculateProportioningCoefficient(bugTicketsForProportion);
-                proportionValue += localProportionValue;
-                LOGGER.log(Level.INFO,"\nProportion value for "+project.toUpperCase()+" is--> {}",localProportionValue+"\n");
+                proportionValue.add(localProportionValue);
+                System.out.println("\nProportion value for "+project.toUpperCase()+" is--> {}"+localProportionValue+"\n");
 
             }
         }
-        return proportionValue / (PROJECT_NAMES.length-1);
+        return obtainMedian(proportionValue);
     }
 
 }

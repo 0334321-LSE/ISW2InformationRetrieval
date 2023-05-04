@@ -35,11 +35,11 @@ public class VersionUtil {
         return null;
     }
 
-    /** Return ticket with OV == version */
-    public static List<BugTicket> getAssociatedTicket(List<BugTicket> bugTicketList, int versionID){
+    /** Return ticket with OV <= version */
+    public static List<BugTicket> getAssociatedTicketUntilVersionID(List<BugTicket> bugTicketList, int versionID){
         List<BugTicket> associatedTicket = new ArrayList<>();
         for(BugTicket bugTicket: bugTicketList){
-            if (bugTicket.getOpeningVersion().getVersionInt() == versionID )
+            if (bugTicket.getOpeningVersion().getVersionInt() <= versionID )
                 associatedTicket.add(bugTicket);
         }
         return associatedTicket;

@@ -1,21 +1,11 @@
 package isw.project.file_model;
 
-import java.io.File;
-import java.io.FileOutputStream;
-        import java.io.IOException;
-        import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.*;
 import java.util.List;
 
 import isw.project.model.ClassifierEvaluation;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-        import org.apache.poi.ss.usermodel.Cell;
-        import org.apache.poi.ss.usermodel.Row;
-        import org.apache.poi.ss.usermodel.Sheet;
-        import org.apache.poi.ss.usermodel.Workbook;
+import org.jetbrains.annotations.NotNull;
 
-      
 
 public class EvaluationFile {
 
@@ -30,95 +20,91 @@ public class EvaluationFile {
 
     }
 
-    public void reportEvaluationOnCsv() throws IOException {
+    private  @NotNull File createANewFile() throws IOException {
 
-        Workbook wb = new HSSFWorkbook();
-        String pathname = "./retrieved_data/projectEvaluation/"+this.projName+ File.separator;
-        Files.createDirectories(Path.of(pathname));
+        String dirPath = "./retrieved_data/projectEvaluation/"+this.projName+ File.separator;
 
-        try(OutputStream os = new FileOutputStream(pathname+this.projName+"Evaluation.csv")) {
-            Sheet sheet = wb.createSheet(this.projName);
+        String pathname = dirPath+ this.projName+"Evaluation.csv";
+        File dir = new File(dirPath);
+        File file = new File(pathname);
 
-            for(int i=-1; i<this.evaluationsList.size(); i++) {
-                Row row = sheet.createRow(i+1);		//i = row index - 1
-
-                Cell cell00 = row.createCell(0);
-                Cell cell01 = row.createCell(1);
-                Cell cell02 = row.createCell(2);
-                Cell cell03 = row.createCell(3);
-                Cell cell04 = row.createCell(4);
-                Cell cell05 = row.createCell(5);
-                Cell cell06 = row.createCell(6);
-                Cell cell07 = row.createCell(7);
-                Cell cell08 = row.createCell(8);
-                Cell cell09 = row.createCell(9);
-                Cell cell10 = row.createCell(10);
-                Cell cell11 = row.createCell(11);
-                Cell cell12 = row.createCell(12);
-                Cell cell13 = row.createCell(13);
-                Cell cell14 = row.createCell(14);
-
-                if(i==-1) {
-                    cell00.setCellValue("DATASET");
-                    cell01.setCellValue("#TRAINING_RELEASES");
-                    cell02.setCellValue("%TRAINING_INSTANCES");
-                    cell03.setCellValue("CLASSIFIER");
-                    cell04.setCellValue("FEATURE_SELECTION");
-                    cell05.setCellValue("BALANCING");
-                    cell06.setCellValue("COST_SENSITIVE");
-                    cell07.setCellValue("PRECISION");
-                    cell08.setCellValue("RECALL");
-                    cell09.setCellValue("AUC");
-                    cell10.setCellValue("KAPPA");
-                    cell11.setCellValue("TP");
-                    cell12.setCellValue("FP");
-                    cell13.setCellValue("TN");
-                    cell14.setCellValue("FN");
-                    continue;
-
-                }
-
-                cell00.setCellValue(this.projName);
-                if(this.description.equals("details")) {
-                    cell01.setCellValue(this.evaluationsList.get(i).getWalkForwardIterationIndex());
-                    cell02.setCellValue(this.evaluationsList.get(i).getTrainingPercent());
-                }
-                else {
-                    cell01.setCellValue("None");
-                    cell02.setCellValue("None");
-                }
-                cell03.setCellValue(this.evaluationsList.get(i).getClassifier());
-
-                if(this.evaluationsList.get(i).isFeatureSelection()) {
-                    cell04.setCellValue("Best first");
-                }
-                else {
-                    cell04.setCellValue("None");
-                }
-
-                cell05.setCellValue(this.evaluationsList.get(i).getSampling());
-
-                if(this.evaluationsList.get(i).isCostSensitive()) {
-                    cell06.setCellValue("Sensitive learning");
-                }
-                else {
-                    cell06.setCellValue("None");
-                }
-
-                cell07.setCellValue(this.evaluationsList.get(i).getPrecision());
-                cell08.setCellValue(this.evaluationsList.get(i).getRecall());
-                cell09.setCellValue(this.evaluationsList.get(i).getAuc());
-                cell10.setCellValue(this.evaluationsList.get(i).getKappa());
-                cell11.setCellValue(this.evaluationsList.get(i).getTp());
-                cell12.setCellValue(this.evaluationsList.get(i).getFp());
-                cell13.setCellValue(this.evaluationsList.get(i).getTn());
-                cell14.setCellValue(this.evaluationsList.get(i).getFn());
-
-            }
-            wb.write(os);	//Write on file Excel
-
+        if(!dir.exists() && !file.mkdirs()) {
+            throw new RuntimeException(); //Exception: dir creation impossible
         }
 
+        if(file.exists() && !file.delete()) {
+            throw new IOException(); //Exception: file deletion impossible
+        }
+
+        return file;
+    }
+
+    public void reportEvaluationOnCsv() throws  IOException{
+        File file = createANewFile();
+        try(FileWriter fw = new FileWriter(file)) {
+            fw.write( "DATASET,"+
+                    "TRAIN_RELEASES," +
+                    "%TRAIN_INSTANCES," +
+                    "CLASSIFIER," +
+                    "FEATURE_SELECTION," +
+                    "BALANCING," +
+                    "COST_SENSITIVE," +
+                    "PRECISION," +
+                    "RECALL," +
+                    "AUC," +
+                    "KAPPA," +
+                    "TP," +
+                    "FP," +
+                    "TN," +
+                    "FN,\n");
+
+            writeDataOnFile(fw);
+        }
+
+    }
+    private void writeDataOnFile(FileWriter fw) throws IOException {
+
+        for (ClassifierEvaluation evaluation : this.evaluationsList) {
+
+
+            fw.write(this.projName + ","); //ProjName
+            if(this.description.equals("details")) { //Details
+                fw.write(evaluation.getWalkForwardIterationIndex()+ ",");
+                fw.write((evaluation.getTrainingPercent())+ ",");
+            }
+            else {
+                fw.write("None"+ ",");
+                fw.write("None"+ ",");
+            }
+            fw.write(evaluation.getClassifier() + ","); //Classifiers
+            if(evaluation.isFeatureSelection()) {
+                fw.write("Best first"+ ",");
+            }
+            else {
+                fw.write("None"+ ",");
+            }
+            fw.write(evaluation.getSampling()+ ","); //Sampling type
+
+            if(evaluation.isCostSensitive()) { //Cost sensitive
+                fw.write("Sensitive learning"+ ",");
+            }
+            else {
+                fw.write("None"+",");
+            }
+
+            fw.write(evaluation.getPrecision() + ","); //Precision
+            fw.write(evaluation.getRecall() + ","); //Recall
+            fw.write(evaluation.getAuc()+ ","); //Area under the curve
+            fw.write(evaluation.getKappa() + ","); //Kappa
+            fw.write(evaluation.getTp() + ","); //TP
+            fw.write(evaluation.getFp() + ","); //FP
+            fw.write(evaluation.getTn() + ","); //TN
+            fw.write(evaluation.getFn() + ","); //FN
+            fw.write("\n");
+
+
+
+        }
     }
 
 }

@@ -7,6 +7,8 @@ import weka.classifiers.AbstractClassifier;
 import weka.classifiers.lazy.IBk;
 import weka.classifiers.meta.FilteredClassifier;
 import weka.classifiers.trees.RandomForest;
+import weka.core.Attribute;
+import weka.core.Instance;
 import weka.core.Instances;
 
 
@@ -17,6 +19,7 @@ import weka.filters.Filter;
 import weka.filters.supervised.attribute.AttributeSelection;
 import weka.filters.supervised.instance.Resample;
 import weka.filters.supervised.instance.SpreadSubsample;
+import weka.filters.supervised.instance.SMOTE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,13 +31,18 @@ public class WekaRetriever {
     private static final String NAIVE_BAYES = "Naive Bayes";
     private static final String IBK = "IBk";
 
+    //Sampling type
     private static final String UNDER ="Under";
     private static final String OVER ="Over";
 
+    private static final String SMOTE ="Smote";
+
+    //Used classifiers
     private final NaiveBayes naiveBayesClassifier;
     private final RandomForest randomForestClassifier;
     private final IBk ibkClassifier;
 
+    //List of various classifier evaluation
     private final List<ClassifierEvaluation> simpleNaiveBayesList;
     private final List<ClassifierEvaluation> simpleRandomForestList;
     private final List<ClassifierEvaluation> simpleIBkList;
@@ -50,6 +58,11 @@ public class WekaRetriever {
     private final List<ClassifierEvaluation> oversamplingNaiveBayesList;
     private final List<ClassifierEvaluation> oversamplingRandomForestList;
     private final List<ClassifierEvaluation> oversamplingIBkList;
+
+    private final List<ClassifierEvaluation> smoteNaiveBayesList;
+    private final List<ClassifierEvaluation> smoteRandomForestList;
+    private final List<ClassifierEvaluation> smoteIBkList;
+
     private final String projName;
     private final int numIter;
 
@@ -75,6 +88,11 @@ public class WekaRetriever {
         oversamplingNaiveBayesList = new ArrayList<>();
         oversamplingRandomForestList = new ArrayList<>();
         oversamplingIBkList = new ArrayList<>();
+
+
+        smoteNaiveBayesList = new ArrayList<>();
+        smoteRandomForestList = new ArrayList<>();
+        smoteIBkList = new ArrayList<>();
     }
     public List<ClassifierEvaluation> walkForwardValidation() throws Exception {
 
@@ -121,13 +139,42 @@ public class WekaRetriever {
             //VALIDATION WITH FEATURE SELECTION (BEST FIRST) AND WITH SAMPLING (OVERSAMPLING)
             oversamplingWithFeatureSelection(i,filteredTraining,filteredTesting);
 
+            //VALIDATION WITH FEATURE SELECTION (BEST FIRST) AND WITH SAMPLING (SMOTE)
+            smoteWithFeatureSelection(i,filteredTraining,filteredTesting);
         }
 
         List<ClassifierEvaluation> allEvaluationList = new ArrayList<>();
-        mergeAllList(allEvaluationList);
+        mergeAllListOrdered(allEvaluationList);
 
         return allEvaluationList;
     }
+
+    private void mergeAllListOrdered(List<ClassifierEvaluation> allEvaluationList){
+        for( int i = 0; i<simpleNaiveBayesList.size(); i++){
+            allEvaluationList.add(simpleNaiveBayesList.get(i));
+            allEvaluationList.add(featureNaiveBayesList.get(i));
+            allEvaluationList.add(undersamplingNaiveBayesList.get(i));
+            allEvaluationList.add(oversamplingNaiveBayesList.get(i));
+            allEvaluationList.add(smoteNaiveBayesList.get(i));
+        }
+
+        for( int j = 0; j<simpleRandomForestList.size(); j++){
+            allEvaluationList.add(simpleRandomForestList.get(j));
+            allEvaluationList.add(featureRandomForestList.get(j));
+            allEvaluationList.add(undersamplingRandomForestList.get(j));
+            allEvaluationList.add(oversamplingRandomForestList.get(j));
+            allEvaluationList.add(smoteRandomForestList.get(j));
+        }
+
+        for( int k = 0; k<simpleRandomForestList.size(); k++){
+            allEvaluationList.add(simpleIBkList.get(k));
+            allEvaluationList.add(featureIBkList.get(k));
+            allEvaluationList.add(undersamplingIBkList.get(k));
+            allEvaluationList.add(oversamplingIBkList.get(k));
+            allEvaluationList.add(smoteIBkList.get(k));
+        }
+    }
+
 
     /** Merge all the evaluation list into one */
     private void mergeAllList(List<ClassifierEvaluation> allEvaluationList){
@@ -135,17 +182,20 @@ public class WekaRetriever {
         allEvaluationList.addAll(featureNaiveBayesList);
         allEvaluationList.addAll(undersamplingNaiveBayesList);
         allEvaluationList.addAll(oversamplingNaiveBayesList);
+        allEvaluationList.addAll(smoteNaiveBayesList);
 
         allEvaluationList.addAll(simpleRandomForestList);
         allEvaluationList.addAll(featureRandomForestList);
         allEvaluationList.addAll(undersamplingRandomForestList);
         allEvaluationList.addAll(oversamplingRandomForestList);
+        allEvaluationList.addAll(smoteRandomForestList);
 
 
         allEvaluationList.addAll(simpleIBkList);
         allEvaluationList.addAll(featureIBkList);
         allEvaluationList.addAll(undersamplingIBkList);
         allEvaluationList.addAll(oversamplingIBkList);
+        allEvaluationList.addAll(smoteIBkList);
     }
 
     /** Does the simple evaluation without any feature selection/sampling/cost sensitive */
@@ -226,10 +276,14 @@ public class WekaRetriever {
     /** Does validation with Best first feature selection and oversampling */
     private void oversamplingWithFeatureSelection(int i, Instances filteredTraining, Instances filteredTesting) throws Exception {
 
+        //sampleSizePercent is equal to Y where Y/2 is equal to the percentage of the majority instance
+        int notBuggy = getIsntBuggyIstanceNumber(filteredTraining);
+        double percentage = ((double) notBuggy /filteredTraining.size())*100;
+        System.out.println(i+") "+notBuggy+ " percentage is :" + percentage);
 
         Resample resample = new Resample();
         resample.setInputFormat(filteredTraining);
-        resample.setOptions(new String[] {"-B", "1.0","-Z","130.3"});
+        resample.setOptions(new String[] {"-B", "1.0","-Z", Double.toString(2*percentage)});
         FilteredClassifier fc = new FilteredClassifier();
         fc.setFilter(resample);
 
@@ -254,6 +308,56 @@ public class WekaRetriever {
 
     }
 
+    /** Does validation with Best first feature selection and smote */
+    private void smoteWithFeatureSelection(int i, Instances filteredTraining, Instances filteredTesting) throws Exception {
+
+        int notBuggy = getIsntBuggyIstanceNumber(filteredTraining);
+        int buggy = filteredTraining.size()-notBuggy;
+
+        double percentage = ((double) (notBuggy-buggy)/buggy) * 100;
+        //
+        if ( buggy == 0 ) percentage = 0;
+        System.out.println(i+") "+notBuggy+ " percentage is :" + percentage);
+
+        FilteredClassifier fc = new FilteredClassifier();
+
+        SMOTE smote = new SMOTE();
+        smote.setInputFormat(filteredTraining);
+        smote.setClassValue("1");
+        smote.setPercentage(percentage);
+
+        fc.setFilter(smote);
+
+        Evaluation evaluation = new Evaluation(filteredTesting);
+        //Naive Bayes with feature selection and oversampling
+        fc.setClassifier(naiveBayesClassifier);
+        fc.buildClassifier(filteredTraining);
+        ClassifierEvaluation smoteNaiveBayes = new ClassifierEvaluation(this.projName, i, NAIVE_BAYES, true, SMOTE, false);
+        smoteNaiveBayesList.add(evaluateClassifier(evaluation,smoteNaiveBayes,fc,filteredTraining,filteredTesting));
+
+        // RandomForest with feature selection and oversampling
+        fc.setClassifier(randomForestClassifier);
+        fc.buildClassifier(filteredTraining);
+        ClassifierEvaluation smoteRandomForest = new ClassifierEvaluation(this.projName, i, RANDOM_FOREST, true, SMOTE, false);
+        smoteRandomForestList.add(evaluateClassifier(evaluation,smoteRandomForest,fc,filteredTraining,filteredTesting));
+
+        //IBK with feature selection and oversampling
+        fc.setClassifier(ibkClassifier);
+        fc.buildClassifier(filteredTraining);
+        ClassifierEvaluation smoteIBk = new ClassifierEvaluation(this.projName, i, IBK, true, SMOTE, false);
+        smoteIBkList.add(evaluateClassifier(evaluation,smoteIBk,fc,filteredTraining,filteredTesting));
+
+    }
+
+
+
+    private int getIsntBuggyIstanceNumber(Instances training){
+        int notBuggyInstance = 0;
+        for (Instance instance: training){
+            if ( instance.toString(instance.numAttributes()-1).equals("false") ) notBuggyInstance++;
+        }
+        return notBuggyInstance;
+    }
 
     private static ClassifierEvaluation evaluateClassifier(Evaluation evaluation, ClassifierEvaluation classifierEvaluation, AbstractClassifier classifierType,Instances training,Instances testing) throws Exception {
         evaluation.evaluateModel(classifierType,testing);

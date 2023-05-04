@@ -3,7 +3,10 @@ presenti nelle affected version (laddove presenti).
 
 2)Per i ticket in cui non era presente l’injected version si è utilizzato proportion-coldStart
 prendendo i ticket validi di tutti gli altri progetti calcolando per ogni progetto il coeffieciente
-di proportion e raccogliendo la mediana tra questi.
+di proportion(la p media) e poi prendendo la mediana tra le p medie dei vari progetti (as paper says).
+
+2.1) tra i progetti è stato escluso storm il quale aveva un valore di proportio pari a 8 decisamente troppo
+grande rispetto alle versioni di bookkeeper e tajo, questo dovuto alla grande quantità di versioni
 
 3)Come opening version è stata scelta la prima versione successiva alla creation date del ticket
 
@@ -13,7 +16,8 @@ di proportion e raccogliendo la mediana tra questi.
 come assunzione si è scelto di scegliere la versione successiva.
 
 6)Quando l’iv calcolato tramite proportion è <=1, come nel caso di BOOKKEEPER – 24
-viene settata come fixed version la prima.
+viene settata come fixed version la prima. Quando OV = FV viene comunque calcolato
+il valore di proportion mettendo il denominatore a 1.
 
 7)Alcuni ticket presentano delle version non esistenti tra quelle elencate in Jira, questo capita soprattutto per i progetti ancora aperti.
 In tal caso si è scelto di settare la injected version come NULL e di scartarli in caso accadesse con la  opening e la fixed version.

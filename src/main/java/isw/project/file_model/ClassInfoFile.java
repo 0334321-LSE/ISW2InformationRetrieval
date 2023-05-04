@@ -1,29 +1,24 @@
 package isw.project.file_model;
 
 import isw.project.model.ClassInfo;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Workbook;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+
 import java.util.List;
 
 
 public class ClassInfoFile {
 
-    private String projName;
-    private CsvEnumaration csvName;
-    private int iterationIndex;
+    private final String projName;
+    private final CsvEnumaration csvName;
+    private final int iterationIndex;
 
-    private  int versionIndex;
-    private List<ClassInfo> javaClassesList;
+    private final int versionIndex;
+    private final List<ClassInfo> javaClassesList;
 
-    public ClassInfoFile(String projName, CsvEnumaration csvName, int iterationIndex, int versionIndex, List<ClassInfo> javaClassesList) {
+    public ClassInfoFile(String projName, CsvEnumaration csvName, int iterationIndex, int versionIndex, List<ClassInfo> javaClassesList) throws IOException {
         this.projName = projName;
         this.csvName = csvName;
         this.iterationIndex = iterationIndex;
@@ -34,20 +29,11 @@ public class ClassInfoFile {
 
     private String enumToFilename() {
 
-        switch(csvName) {
-
-            case TRAINING:
-                return "_TR" + versionIndex;
-            case TESTING:
-                return "_TE" + versionIndex;
-            case BUGGY:
-                return "_buggy_classes";
-            case CURRENT:
-                return "_current_classes";
-            default:
-                return null;
-
-        }
+        return switch (csvName) {
+            case TRAINING -> "_TR" + versionIndex;
+            case TESTING -> "_TE" + versionIndex;
+            default -> null;
+        };
 
     }
     private String enumToWFDirectoryName() {
@@ -55,86 +41,61 @@ public class ClassInfoFile {
        return this.projName+"_WF_"+this.iterationIndex;
 
     }
-    /** write all the ClassInfo data on a CSV file*/
-    public Sheet writeOnCsv() throws IOException {
 
-        Sheet sheet;
-        String fileNameStr = enumToFilename();
-        Workbook wb = new HSSFWorkbook();
+    private  @NotNull File createANewFile(String projName, String endPath) throws IOException {
 
-        String pathname = "./retrieved_data/projectClasses/"+this.projName+ File.separator  + enumToWFDirectoryName()+ File.separator;
-        Files.createDirectories(Path.of(pathname));
+        String dirPath = "./retrieved_data/projectClasses/"+this.projName+ File.separator  + enumToWFDirectoryName()+ File.separator;
 
-        try(OutputStream os = new FileOutputStream(pathname+ this.projName+ fileNameStr +".csv")) {
-            sheet = wb.createSheet(this.projName);
+        String pathname = dirPath + projName + enumToFilename() + endPath;
 
-            for(int i=-1; i<this.javaClassesList.size(); i++) {
-                Row row = sheet.createRow(i+1);		//i = row index - 1
+        File dir = new File(dirPath);
+        File file = new File(pathname);
 
-                Cell cell0 = row.createCell(0);
-                Cell cell1 = row.createCell(1);
-                Cell cell2 = row.createCell(2);
-                Cell cell3 = row.createCell(3);
-                Cell cell4 = row.createCell(4);
-                Cell cell5 = row.createCell(5);
-                Cell cell6 = row.createCell(6);
-                Cell cell7 = row.createCell(7);
-                Cell cell8 = row.createCell(8);
-                Cell cell9 = row.createCell(9);
-                Cell cell10 = row.createCell(10);
-                Cell cell11 = row.createCell(11);
-                Cell cell12 = row.createCell(12);
-
-                if(i==-1) {
-                    cell0.setCellValue("CLASS");
-                    cell1.setCellValue("VERSION");
-                    cell2.setCellValue("SIZE");
-                    cell3.setCellValue("NR");
-                    cell4.setCellValue("NFix");
-                    cell5.setCellValue("N_AUTH");
-                    cell6.setCellValue("LOC_ADDED");
-                    cell7.setCellValue("MAX_LOC_ADDED");
-                    cell8.setCellValue("AVG_LOC_ADDED");
-                    cell9.setCellValue("CHURN");
-                    cell10.setCellValue("MAX_CHURN");
-                    cell11.setCellValue("AVG_CHURN");
-                    cell12.setCellValue("IS_BUGGY");
-
-                }
-                else {
-                    cell0.setCellValue(this.javaClassesList.get(i).getName());
-                    cell1.setCellValue(this.javaClassesList.get(i).getVersion().getVersionInt());
-                    cell2.setCellValue(this.javaClassesList.get(i).getSize());
-                    cell3.setCellValue(this.javaClassesList.get(i).getNr());
-                    cell4.setCellValue(this.javaClassesList.get(i).getnFix());
-                    cell5.setCellValue(this.javaClassesList.get(i).getnAuth());
-                    cell6.setCellValue(this.javaClassesList.get(i).getLocAdded());
-                    cell7.setCellValue(this.javaClassesList.get(i).getMaxLocAdded());
-                    cell8.setCellValue(this.javaClassesList.get(i).getAvgLocAdded());
-                    cell9.setCellValue(this.javaClassesList.get(i).getChurn());
-                    cell10.setCellValue(this.javaClassesList.get(i).getMaxChurn());
-                    cell11.setCellValue(this.javaClassesList.get(i).getAvgChurn());
-                    cell12.setCellValue(this.javaClassesList.get(i).isBuggy());
-
-                }
-
-            }
-            wb.write(os);	//Write on file Excel
-
+        if(!dir.exists() && !file.mkdirs()) {
+            throw new RuntimeException(); //Exception: dir creation impossible
         }
-        return sheet;
 
+        if(file.exists() && !file.delete()) {
+            throw new IOException(); //Exception: file deletion impossible
+        }
+
+        return file;
+    }
+
+    /** write all the ClassInfo data on a CSV file*/
+    public void writeOnCsv() throws IOException {
+
+        File file = createANewFile(projName, ".csv");
+
+        try(FileWriter fw = new FileWriter(file)) {
+
+            fw.write( "JAVA_CLASS,"+
+                    "VERSION," +
+                    "SIZE," +
+                    "NR," +
+                    "NFix," +
+                    "N_AUTH," +
+                    "LOC_ADDED," +
+                    "MAX_LOC_ADDED," +
+                    "AVG_LOC_ADDED," +
+                    "CHURN," +
+                    "MAX_CHURN," +
+                    "AVG_CHURN," +
+                    "NUMBER_OF_COMMITS," +
+                    "IS_BUGGY,\n");
+
+            writeDataOnFile( fw, false);
+        }
     }
 
     /**Write for all the ClassInfo elements the data into a ARFF file */
-    public void writeOnArff(boolean deleteCsv) throws IOException {
+    public void writeOnArff() throws IOException {
 
         String fileNameStr = enumToFilename();
-        Sheet sheet = writeOnCsv();
 
-        String pathname = "./retrieved_data/projectClasses/"+this.projName+ File.separator + enumToWFDirectoryName()+ File.separator;
-        Files.createDirectories(Path.of(pathname));
-        try(FileWriter wr = new FileWriter(pathname+ this.projName+ fileNameStr+".arff")) {
+        writeOnCsv();
+        File file = createANewFile(projName, ".arff");
+        try (FileWriter wr = new FileWriter(file)) {
 
             wr.write("@relation " + this.projName + fileNameStr + "\n");
             wr.write("@attribute SIZE numeric\n");
@@ -147,35 +108,42 @@ public class ClassInfoFile {
             wr.write("@attribute CHURN numeric\n");
             wr.write("@attribute MAX_CHURN numeric\n");
             wr.write("@attribute AVG_CHURN numeric\n");
+            wr.write("@attribute NUMBER_OF_COMMITS numeric\n");
             wr.write("@attribute IS_BUGGY {'true', 'false'}\n");
             wr.write("@data\n");
 
-            for (int r=1; r<=sheet.getLastRowNum(); r++){
-                Row row = sheet.getRow(r);
+            writeDataOnFile(wr,true);
 
-                Double val2 = row.getCell(2).getNumericCellValue();
-                Double val3 = row.getCell(3).getNumericCellValue();
-                Double val4 = row.getCell(4).getNumericCellValue();
-                Double val5 = row.getCell(5).getNumericCellValue();
-                Double val6 = row.getCell(6).getNumericCellValue();
-                Double val7 = row.getCell(7).getNumericCellValue();
-                Double val8 = row.getCell(8).getNumericCellValue();
-                Double val9 = row.getCell(9).getNumericCellValue();
-                Double val10 = row.getCell(10).getNumericCellValue();
-                Double val11 = row.getCell(11).getNumericCellValue();
-                Boolean val12 = row.getCell(12).getBooleanCellValue();
-
-                wr.write(val2.toString() + "," + val3.toString() + "," + val4.toString() + "," + val5.toString() + "," + val6.toString() + "," +
-                        val7.toString() + "," + val8.toString() + "," + val9.toString() + "," + val10.toString() + "," + val11.toString() + "," + val12.toString() + "\n");
-
-            }
-
-        }
-
-        if(deleteCsv) {
-            Files.delete(Paths.get(pathname+".csv"));
         }
 
     }
 
+    private void writeDataOnFile(FileWriter fw, boolean isArff) throws IOException {
+
+        for (ClassInfo javaClass : this.javaClassesList) {
+
+            if (!isArff) {
+                fw.write(javaClass.getName() + ","); //JAVA_CLASS
+                fw.write(javaClass.getVersion().getVersionInt() + ","); //VERSION
+            }
+            fw.write(javaClass.getSize() + ","); //SIZE
+            fw.write(javaClass.getNr() + ","); //Nr
+            fw.write(javaClass.getnFix() + ","); //NFix
+            fw.write(javaClass.getnAuth()+ ","); //NUMBER OF AUTHORS
+            fw.write(javaClass.getLocAdded() + ","); //LOC_ADDED
+            fw.write(javaClass.getMaxLocAdded() + ","); //MAX_LOC_ADDED
+            fw.write(javaClass.getAvgLocAdded() + ","); //AVG_LOC_ADDED
+            fw.write(javaClass.getChurn() + ","); //CHURN
+            fw.write(javaClass.getMaxChurn() + ","); //MAX_CHURN
+            fw.write(javaClass.getAvgChurn() + ","); //AVG_CHURN
+            fw.write(javaClass.getCommits().size() + ","); //NUMBER_OF_COMMITS
+
+            fw.write(javaClass.isBuggy()); //IS_BUGGY
+
+            fw.write("\n");
+
+
+
+        }
+    }
 }

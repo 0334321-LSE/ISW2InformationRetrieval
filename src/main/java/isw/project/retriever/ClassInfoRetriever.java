@@ -7,7 +7,6 @@ import isw.project.model.ClassInfo;
 import isw.project.util.ClassInfoUtil;
 import isw.project.util.VersionUtil;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.diff.Edit;
@@ -79,8 +78,8 @@ public class ClassInfoRetriever {
 	 * - Binary value "isBuggy"*/
 
     /**Used to label the buggy of training set classes, with snoring, so without using all the tickets */
-    public void labelClassesUntilVersionID(List<VersionInfo> versionInfoList, List<ClassInfo> javaClasses, int versionID) throws GitAPIException, IOException {
-        List<BugTicket> bugTicketList = VersionUtil.getAssociatedTicket(this.ticketsWithAV,versionID);
+    public void labelClassesUntilVersionID(List<VersionInfo> versionInfoList, List<ClassInfo> javaClasses, int versionID) throws  IOException {
+        List<BugTicket> bugTicketList = VersionUtil.getAssociatedTicketUntilVersionID(this.ticketsWithAV,versionID);
         ClassInfoUtil.initializateBuggyness(javaClasses);
         //label classes only with the available tickets in that version
         for(BugTicket ticket : bugTicketList) {
@@ -90,7 +89,7 @@ public class ClassInfoRetriever {
 
     }
     /**Used to label the buggy of testing set classes, without snoring using all the tickets */
-    public void labelClasses(List<VersionInfo> versionInfoList, List<ClassInfo> javaClasses) throws GitAPIException, IOException {
+    public void labelClasses(List<VersionInfo> versionInfoList, List<ClassInfo> javaClasses) throws  IOException {
         ClassInfoUtil.initializateBuggyness(javaClasses);
         //Label testing set with all the available tickets
         for(BugTicket ticket : this.ticketsWithAV) {
