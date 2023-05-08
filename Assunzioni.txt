@@ -1,38 +1,42 @@
-1) Come injected version è stata scelta la prima tra le versioni
+1)IV: Come injected version è stata scelta la prima tra le versioni
 presenti nelle affected version (laddove presenti).
 
-2)Per i ticket in cui non era presente l’injected version si è utilizzato proportion-coldStart
+2)PROPORTION: Per i ticket in cui non era presente l’injected version si è utilizzato proportion-coldStart
 prendendo i ticket validi di tutti gli altri progetti calcolando per ogni progetto il coeffieciente
 di proportion(la p media) e poi prendendo la mediana tra le p medie dei vari progetti (as paper says).
 
-2.1) tra i progetti è stato escluso storm il quale aveva un valore di proportio pari a 8 decisamente troppo
-grande rispetto alle versioni di bookkeeper e tajo, questo dovuto alla grande quantità di versioni
+2.1)PROPORTION: tra i progetti è stato escluso storm il quale aveva un valore di proportion pari a 8, decisamente troppo
+grande se considerato il numero di versioni di bookkeeper e tajo, (questo dovuto alla grande quantità di versioni di Storm)
 
-3)Come opening version è stata scelta la prima versione successiva alla creation date del ticket
+3)OV: Come opening version è stata scelta la prima versione successiva alla creation date del ticket
 
-4)Come fixed version è stata scelta la prima versione successiva alla resolution date del ticket.
+4)FV: Come fixed version è stata scelta la prima versione successiva alla resolution date del ticket.
 
-5)Il ticket 859 di BOOKEEPER è stato creato lo stesso giorno in cui è uscita la versione 4.4.0,
+5)TICKET PROBLEM: Il ticket 859 di BOOKEEPER è stato creato lo stesso giorno in cui è uscita la versione 4.4.0,
 come assunzione si è scelto di scegliere la versione successiva.
 
-6)Quando l’iv calcolato tramite proportion è <=1, come nel caso di BOOKKEEPER – 24
+6)VERSION PROBLEM: Quando l’iv calcolato tramite proportion è <=1, come nel caso di BOOKKEEPER – 24
 viene settata come fixed version la prima. Quando OV = FV viene comunque calcolato
 il valore di proportion mettendo il denominatore a 1.
 
-7)Alcuni ticket presentano delle version non esistenti tra quelle elencate in Jira, questo capita soprattutto per i progetti ancora aperti.
-In tal caso si è scelto di settare la injected version come NULL e di scartarli in caso accadesse con la  opening e la fixed version.
+7)VERSION PROBLEM: Alcuni ticket presentano delle version non esistenti tra quelle elencate in Jira,
+questo capita soprattutto per i progetti ancora aperti.
+In tal caso si è scelto di settare la injected version come NULL e di scartarli in caso accadesse con la opening e la fixed version.
 
-8)Vengono scartati i commit che non sono associabili ad alcuna versione tra quelle ricavate
+8)COMMIT PROBLEM: Vengono scartati i commit che non sono associabili ad alcuna versione tra quelle ricavate
 da Jira, questo capita per esempio in bookkeeper in cui in Jira mancano le versioni più recenti.
 
-9)Vengono scartate le classi test ai fini dello studio
+9)CLASSES: Vengono scartate le classi test ai fini dello studio.
 
-10)Walk forward: si ricalcola la buggyness ad ogni iterazione con i ticket disponibili
+10)WALK FORWARD: si ricalcola la buggyness ad ogni iterazione con i ticket disponibili
 fino a quelli della versione di testing (esclusa), quindi c'è snoring nel training set, non
-vogliamo usare dati futuri per migliorare la bontà della predizione
+vogliamo usare dati futuri per migliorare la bontà della predizione.
 
-11)Walk forward: per il labeling del testing vengono usati tutti i ticket a dispozione in modo
+11)WALK FORWARD: per il labeling del testing vengono usati tutti i ticket a dispozione in modo
 da limitare lo snoring e quindi avere un set da predirre che sia il più veritiero possibile.
 
-12)Assunzione, come subsetEvaluation erano vari possibili, si è scelto CfsSubsetEval perchè
+12)UNDERSAMPLING: come subsetEvaluation erano vari possibili, si è scelto CfsSubsetEval perchè
 si basa sulla capacità individuale di predicibilità e il grado di ridonzanza tra le varie feature.
+
+13)SMOTE: per raggiungere la stessa cardinalità tra classi buggy e non con smote si è usata la seguente percentuale:
+(notBuggy-buggy)/buggy) * 100

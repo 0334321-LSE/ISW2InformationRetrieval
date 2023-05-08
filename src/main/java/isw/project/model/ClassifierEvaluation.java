@@ -2,13 +2,13 @@ package isw.project.model;
 
 public class ClassifierEvaluation {
 
-    private String projName;
-    private int walkForwardIterationIndex;
+    private final String projName;
+    private final int walkForwardIterationIndex;
     private double trainingPercent;
-    private String classifier;
-    private boolean featureSelection;
-    private String sampling;
-    private boolean costSensitive;
+    private final String classifier;
+    private final boolean featureSelection;
+    private final String sampling;
+    private final String costSensitive;
     private double precision;
     private double recall;
     private double auc;
@@ -18,7 +18,7 @@ public class ClassifierEvaluation {
     private double tn;
     private double fn;
 
-    public ClassifierEvaluation(String projName, int index, String classifier, boolean featureSelection, String sampling, boolean costSensitive) {
+    public ClassifierEvaluation(String projName, int index, String classifier, boolean featureSelection, String sampling, String costSensitive) {
         this.projName = projName;
         this.walkForwardIterationIndex = index;
         this.classifier = classifier;
@@ -38,81 +38,32 @@ public class ClassifierEvaluation {
 
     }
 
-    /**
-     * @return the projName
-     */
-    public String getProjName() {
-        return projName;
-    }
-    /**
-     * @param projName the projName to set
-     */
-    public void setProjName(String projName) {
-        this.projName = projName;
-    }
-    /**
-     * @return the walkForwardIterationIndex
-     */
+
+
+
     public int getWalkForwardIterationIndex() {
         return walkForwardIterationIndex;
     }
-    /**
-     * @param walkForwardIterationIndex the walkForwardIterationIndex to set
-     */
-    public void setWalkForwardIterationIndex(int walkForwardIterationIndex) {
-        this.walkForwardIterationIndex = walkForwardIterationIndex;
-    }
-    /**
-     * @return the classifier
-     */
+
     public String getClassifier() {
         return classifier;
     }
-    /**
-     * @param classifier the classifier to set
-     */
-    public void setClassifier(String classifier) {
-        this.classifier = classifier;
-    }
-    /**
-     * @return the featureSelection
-     */
+
     public boolean isFeatureSelection() {
         return featureSelection;
     }
-    /**
-     * @param featureSelection the featureSelection to set
-     */
-    public void setFeatureSelection(boolean featureSelection) {
-        this.featureSelection = featureSelection;
-    }
-    /**
-     * @return the sampling
-     */
+
     public String getSampling() {
         return sampling;
     }
-    /**
-     * @param sampling the sampling to set
-     */
 
     /**
      * @return the costSensitive
      */
-    public boolean isCostSensitive() {
+    public String getCostSensitive() {
         return costSensitive;
     }
 
-    /**
-     * @param costSensitive the costSensitive to set
-     */
-    public void setCostSensitive(boolean costSensitive) {
-        this.costSensitive = costSensitive;
-    }
-
-    /**
-     * @return the precision
-     */
     public double getPrecision() {
         return precision;
     }

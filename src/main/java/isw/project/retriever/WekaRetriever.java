@@ -4,10 +4,11 @@ import isw.project.model.ClassifierEvaluation;
 import weka.attributeSelection.BestFirst;
 import weka.attributeSelection.CfsSubsetEval;
 import weka.classifiers.AbstractClassifier;
+import weka.classifiers.CostMatrix;
 import weka.classifiers.lazy.IBk;
+import weka.classifiers.meta.CostSensitiveClassifier;
 import weka.classifiers.meta.FilteredClassifier;
 import weka.classifiers.trees.RandomForest;
-import weka.core.Attribute;
 import weka.core.Instance;
 import weka.core.Instances;
 
@@ -22,6 +23,7 @@ import weka.filters.supervised.instance.SpreadSubsample;
 import weka.filters.supervised.instance.SMOTE;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -32,10 +34,19 @@ public class WekaRetriever {
     private static final String IBK = "IBk";
 
     //Sampling type
+    private static final String NO = "None";
     private static final String UNDER ="Under";
     private static final String OVER ="Over";
-
     private static final String SMOTE ="Smote";
+
+    //Error type cost
+    private static final double fpWeight = 1.0;
+    private static final double fnWeight = 10.0;
+
+    //Sensitive type
+    private static final String THRESHOLD ="Threshold";
+    private static final String LEARNING ="Learning";
+
 
     //Used classifiers
     private final NaiveBayes naiveBayesClassifier;
@@ -62,6 +73,15 @@ public class WekaRetriever {
     private final List<ClassifierEvaluation> smoteNaiveBayesList;
     private final List<ClassifierEvaluation> smoteRandomForestList;
     private final List<ClassifierEvaluation> smoteIBkList;
+
+    private final List<ClassifierEvaluation> sensitiveThresholdNaiveBayesList;
+    private final List<ClassifierEvaluation> sensitiveThresholdRandomForestList;
+    private final List<ClassifierEvaluation> sensitiveThresholdIBkList;
+
+
+    private final List<ClassifierEvaluation> sensitiveLearningNaiveBayesList;
+    private final List<ClassifierEvaluation> sensitiveLearningRandomForestList;
+    private final List<ClassifierEvaluation> sensitiveLearningIBkList;
 
     private final String projName;
     private final int numIter;
@@ -93,6 +113,16 @@ public class WekaRetriever {
         smoteNaiveBayesList = new ArrayList<>();
         smoteRandomForestList = new ArrayList<>();
         smoteIBkList = new ArrayList<>();
+
+        sensitiveThresholdNaiveBayesList = new ArrayList<>();
+        sensitiveThresholdRandomForestList = new ArrayList<>();
+        sensitiveThresholdIBkList = new ArrayList<>();
+
+        sensitiveLearningNaiveBayesList = new ArrayList<>();
+        sensitiveLearningRandomForestList = new ArrayList<>();
+        sensitiveLearningIBkList = new ArrayList<>();
+
+
     }
     public List<ClassifierEvaluation> walkForwardValidation() throws Exception {
 
@@ -115,7 +145,7 @@ public class WekaRetriever {
             simpleValidation(i,training,testing);
             
             //VALIDATION WITH FEATURE SELECTION (BEST FIRST) AND WITHOUT SAMPLING
-            //TODO ASK TO PROFESSOR WHICH SUB SET EVALUATION MUST BE USED WITH BESTFIRST
+            //TODO ASK TO PROFESSOR WHICH SUB SET EVALUATION MUST BE USED WITH BESTFIRST and wich type of bestfirst must be uesed
             //Evaluates the worth of an attribute by measuring the correlation between it and the class
             CfsSubsetEval subsetEval = new CfsSubsetEval();
             BestFirst search = new BestFirst();
@@ -141,6 +171,12 @@ public class WekaRetriever {
 
             //VALIDATION WITH FEATURE SELECTION (BEST FIRST) AND WITH SAMPLING (SMOTE)
             smoteWithFeatureSelection(i,filteredTraining,filteredTesting);
+
+            //VALIDATION WITH FEATURE SELECTION (BEST FIRST) AND WITH COST SENSITIVE (SENSITIVE THRESHOLD)
+            sensitiveThresholdWithFeatureSelection(i ,filteredTraining, filteredTesting);
+
+            //VALIDATION WITH FEATURE SELECTION (BEST FIRST) AND WITH COST SENSITIVE (SENSITIVE LEARNING)
+            sensitiveLearningWithFeatureSelection(i ,filteredTraining, filteredTesting);
         }
 
         List<ClassifierEvaluation> allEvaluationList = new ArrayList<>();
@@ -156,6 +192,8 @@ public class WekaRetriever {
             allEvaluationList.add(undersamplingNaiveBayesList.get(i));
             allEvaluationList.add(oversamplingNaiveBayesList.get(i));
             allEvaluationList.add(smoteNaiveBayesList.get(i));
+            allEvaluationList.add(sensitiveThresholdNaiveBayesList.get(i));
+            allEvaluationList.add(sensitiveLearningNaiveBayesList.get(i));
         }
 
         for( int j = 0; j<simpleRandomForestList.size(); j++){
@@ -164,6 +202,8 @@ public class WekaRetriever {
             allEvaluationList.add(undersamplingRandomForestList.get(j));
             allEvaluationList.add(oversamplingRandomForestList.get(j));
             allEvaluationList.add(smoteRandomForestList.get(j));
+            allEvaluationList.add(sensitiveThresholdRandomForestList.get(j));
+            allEvaluationList.add(sensitiveLearningRandomForestList.get(j));
         }
 
         for( int k = 0; k<simpleRandomForestList.size(); k++){
@@ -172,6 +212,8 @@ public class WekaRetriever {
             allEvaluationList.add(undersamplingIBkList.get(k));
             allEvaluationList.add(oversamplingIBkList.get(k));
             allEvaluationList.add(smoteIBkList.get(k));
+            allEvaluationList.add(sensitiveThresholdIBkList.get(k));
+            allEvaluationList.add(sensitiveLearningIBkList.get(k));
         }
     }
 
@@ -183,12 +225,16 @@ public class WekaRetriever {
         allEvaluationList.addAll(undersamplingNaiveBayesList);
         allEvaluationList.addAll(oversamplingNaiveBayesList);
         allEvaluationList.addAll(smoteNaiveBayesList);
+        allEvaluationList.addAll(sensitiveThresholdNaiveBayesList);
+        allEvaluationList.addAll(sensitiveLearningNaiveBayesList);
 
         allEvaluationList.addAll(simpleRandomForestList);
         allEvaluationList.addAll(featureRandomForestList);
         allEvaluationList.addAll(undersamplingRandomForestList);
         allEvaluationList.addAll(oversamplingRandomForestList);
         allEvaluationList.addAll(smoteRandomForestList);
+        allEvaluationList.addAll(sensitiveThresholdRandomForestList);
+        allEvaluationList.addAll(sensitiveLearningRandomForestList);
 
 
         allEvaluationList.addAll(simpleIBkList);
@@ -196,6 +242,8 @@ public class WekaRetriever {
         allEvaluationList.addAll(undersamplingIBkList);
         allEvaluationList.addAll(oversamplingIBkList);
         allEvaluationList.addAll(smoteIBkList);
+        allEvaluationList.addAll(sensitiveThresholdIBkList);
+        allEvaluationList.addAll(sensitiveLearningIBkList);
     }
 
     /** Does the simple evaluation without any feature selection/sampling/cost sensitive */
@@ -208,15 +256,15 @@ public class WekaRetriever {
 
         Evaluation evaluation = new Evaluation(testing);
         //simple Naive Bayes
-        ClassifierEvaluation simpleNaiveBayes = new ClassifierEvaluation(this.projName, i, NAIVE_BAYES, false, "NO", false);
+        ClassifierEvaluation simpleNaiveBayes = new ClassifierEvaluation(this.projName, i, NAIVE_BAYES, false, NO, NO);
         simpleNaiveBayesList.add(evaluateClassifier(evaluation,simpleNaiveBayes,naiveBayesClassifier,training,testing));
 
         //simple RandomForest
-        ClassifierEvaluation simpleRandomForest = new ClassifierEvaluation(this.projName, i, RANDOM_FOREST, false, "NO", false);
+        ClassifierEvaluation simpleRandomForest = new ClassifierEvaluation(this.projName, i, RANDOM_FOREST, false, NO, NO);
         simpleRandomForestList.add(evaluateClassifier(evaluation,simpleRandomForest,randomForestClassifier,training,testing));
 
         //simple IBK
-        ClassifierEvaluation simpleIBk = new ClassifierEvaluation(this.projName, i, IBK, false, "NO", false);
+        ClassifierEvaluation simpleIBk = new ClassifierEvaluation(this.projName, i, IBK, false, NO, NO);
         simpleIBkList.add(evaluateClassifier(evaluation,simpleIBk,ibkClassifier,training,testing));
 
     }
@@ -229,15 +277,15 @@ public class WekaRetriever {
         
         Evaluation evaluation = new Evaluation(filteredTesting);
         //Naive Bayes with feature selection
-        ClassifierEvaluation featureNaiveBayes = new ClassifierEvaluation(this.projName, i, NAIVE_BAYES, true, "NO", false);
+        ClassifierEvaluation featureNaiveBayes = new ClassifierEvaluation(this.projName, i, NAIVE_BAYES, true, NO, NO);
         featureNaiveBayesList.add(evaluateClassifier(evaluation,featureNaiveBayes,naiveBayesClassifier,filteredTraining,filteredTesting));
 
         // RandomForest with feature selection
-        ClassifierEvaluation featureRandomForest = new ClassifierEvaluation(this.projName, i, RANDOM_FOREST, true, "NO", false);
+        ClassifierEvaluation featureRandomForest = new ClassifierEvaluation(this.projName, i, RANDOM_FOREST, true, NO, NO);
         featureRandomForestList.add(evaluateClassifier(evaluation,featureRandomForest,randomForestClassifier,filteredTraining,filteredTesting));
 
         //IBK with feature selection
-        ClassifierEvaluation featureIBk = new ClassifierEvaluation(this.projName, i, IBK, true, "NO", false);
+        ClassifierEvaluation featureIBk = new ClassifierEvaluation(this.projName, i, IBK, true, NO, NO);
         featureIBkList.add(evaluateClassifier(evaluation,featureIBk,ibkClassifier,filteredTraining,filteredTesting));
 
     }
@@ -256,19 +304,19 @@ public class WekaRetriever {
         //Naive Bayes with feature selection and undersampling
         fc.setClassifier(naiveBayesClassifier);
         fc.buildClassifier(filteredTraining);
-        ClassifierEvaluation undersamplingNaiveBayes = new ClassifierEvaluation(this.projName, i, NAIVE_BAYES, true, UNDER, false);
+        ClassifierEvaluation undersamplingNaiveBayes = new ClassifierEvaluation(this.projName, i, NAIVE_BAYES, true, UNDER, NO);
         undersamplingNaiveBayesList.add(evaluateClassifier(evaluation,undersamplingNaiveBayes,fc,filteredTraining,filteredTesting));
 
         // RandomForest with feature selection and undersampling
         fc.setClassifier(randomForestClassifier);
         fc.buildClassifier(filteredTraining);
-        ClassifierEvaluation undersamplingRandomForest = new ClassifierEvaluation(this.projName, i, RANDOM_FOREST, true, UNDER, false);
+        ClassifierEvaluation undersamplingRandomForest = new ClassifierEvaluation(this.projName, i, RANDOM_FOREST, true, UNDER, NO);
         undersamplingRandomForestList.add(evaluateClassifier(evaluation,undersamplingRandomForest,fc,filteredTraining,filteredTesting));
 
         //IBK with feature selection and undersampling
         fc.setClassifier(ibkClassifier);
         fc.buildClassifier(filteredTraining);
-        ClassifierEvaluation undersamplingIBk = new ClassifierEvaluation(this.projName, i, IBK, true, UNDER, false);
+        ClassifierEvaluation undersamplingIBk = new ClassifierEvaluation(this.projName, i, IBK, true, UNDER, NO);
         undersamplingIBkList.add(evaluateClassifier(evaluation,undersamplingIBk,fc,filteredTraining,filteredTesting));
 
     }
@@ -291,19 +339,19 @@ public class WekaRetriever {
         //Naive Bayes with feature selection and oversampling
         fc.setClassifier(naiveBayesClassifier);
         fc.buildClassifier(filteredTraining);
-        ClassifierEvaluation oversamplingNaiveBayes = new ClassifierEvaluation(this.projName, i, NAIVE_BAYES, true, OVER, false);
+        ClassifierEvaluation oversamplingNaiveBayes = new ClassifierEvaluation(this.projName, i, NAIVE_BAYES, true, OVER, NO);
         oversamplingNaiveBayesList.add(evaluateClassifier(evaluation,oversamplingNaiveBayes,fc,filteredTraining,filteredTesting));
 
         // RandomForest with feature selection and oversampling
         fc.setClassifier(randomForestClassifier);
         fc.buildClassifier(filteredTraining);
-        ClassifierEvaluation oversamplingRandomForest = new ClassifierEvaluation(this.projName, i, RANDOM_FOREST, true, OVER, false);
+        ClassifierEvaluation oversamplingRandomForest = new ClassifierEvaluation(this.projName, i, RANDOM_FOREST, true, OVER, NO);
         oversamplingRandomForestList.add(evaluateClassifier(evaluation,oversamplingRandomForest,fc,filteredTraining,filteredTesting));
 
         //IBK with feature selection and oversampling
         fc.setClassifier(ibkClassifier);
         fc.buildClassifier(filteredTraining);
-        ClassifierEvaluation oversamplingIBk = new ClassifierEvaluation(this.projName, i, IBK, true, OVER, false);
+        ClassifierEvaluation oversamplingIBk = new ClassifierEvaluation(this.projName, i, IBK, true, OVER, NO);
         oversamplingIBkList.add(evaluateClassifier(evaluation,oversamplingIBk,fc,filteredTraining,filteredTesting));
 
     }
@@ -332,24 +380,87 @@ public class WekaRetriever {
         //Naive Bayes with feature selection and oversampling
         fc.setClassifier(naiveBayesClassifier);
         fc.buildClassifier(filteredTraining);
-        ClassifierEvaluation smoteNaiveBayes = new ClassifierEvaluation(this.projName, i, NAIVE_BAYES, true, SMOTE, false);
+        ClassifierEvaluation smoteNaiveBayes = new ClassifierEvaluation(this.projName, i, NAIVE_BAYES, true, SMOTE, NO);
         smoteNaiveBayesList.add(evaluateClassifier(evaluation,smoteNaiveBayes,fc,filteredTraining,filteredTesting));
 
         // RandomForest with feature selection and oversampling
         fc.setClassifier(randomForestClassifier);
         fc.buildClassifier(filteredTraining);
-        ClassifierEvaluation smoteRandomForest = new ClassifierEvaluation(this.projName, i, RANDOM_FOREST, true, SMOTE, false);
+        ClassifierEvaluation smoteRandomForest = new ClassifierEvaluation(this.projName, i, RANDOM_FOREST, true, SMOTE, NO);
         smoteRandomForestList.add(evaluateClassifier(evaluation,smoteRandomForest,fc,filteredTraining,filteredTesting));
 
         //IBK with feature selection and oversampling
         fc.setClassifier(ibkClassifier);
         fc.buildClassifier(filteredTraining);
-        ClassifierEvaluation smoteIBk = new ClassifierEvaluation(this.projName, i, IBK, true, SMOTE, false);
+        ClassifierEvaluation smoteIBk = new ClassifierEvaluation(this.projName, i, IBK, true, SMOTE, NO);
         smoteIBkList.add(evaluateClassifier(evaluation,smoteIBk,fc,filteredTraining,filteredTesting));
 
     }
 
+    /** Does validation with Best first feature selection and cost sensitive (threshold sensitive)*/
+    private void sensitiveThresholdWithFeatureSelection(int i, Instances filteredTraining, Instances filteredTesting) throws Exception {
 
+        //Create the cost sensitive classifier and set costMatrix
+        CostSensitiveClassifier csc = new CostSensitiveClassifier();
+        csc.setCostMatrix(createCostMatrix());
+
+        // SENSITIVE THRESHOLD
+        csc.setMinimizeExpectedCost(true);
+        System.out.println(Arrays.toString(csc.getOptions()));
+
+
+        Evaluation evaluation = new Evaluation(filteredTesting,csc.getCostMatrix());
+        //Naive Bayes with feature selection and oversampling
+        csc.setClassifier(naiveBayesClassifier);
+        csc.buildClassifier(filteredTraining);
+        ClassifierEvaluation costSensitiveNaiveBayes = new ClassifierEvaluation(this.projName, i, NAIVE_BAYES, true, NO, THRESHOLD);
+        sensitiveThresholdNaiveBayesList.add(evaluateClassifier(evaluation,costSensitiveNaiveBayes,csc,filteredTraining,filteredTesting));
+
+        // RandomForest with feature selection and oversampling
+        csc.setClassifier(randomForestClassifier);
+        csc.buildClassifier(filteredTraining);
+        ClassifierEvaluation costSensitiveRandomForest = new ClassifierEvaluation(this.projName, i, RANDOM_FOREST, true, NO, THRESHOLD);
+        sensitiveThresholdRandomForestList.add(evaluateClassifier(evaluation,costSensitiveRandomForest,csc,filteredTraining,filteredTesting));
+
+        //IBK with feature selection and oversampling
+        csc.setClassifier(ibkClassifier);
+        csc.buildClassifier(filteredTraining);
+        ClassifierEvaluation costSensitiveIBk = new ClassifierEvaluation(this.projName, i, IBK, true, NO, THRESHOLD);
+        sensitiveThresholdIBkList.add(evaluateClassifier(evaluation,costSensitiveIBk,csc,filteredTraining,filteredTesting));
+
+    }
+
+    /** Does validation with Best first feature selection and cost sensitive (threshold sensitive)*/
+    private void sensitiveLearningWithFeatureSelection(int i, Instances filteredTraining, Instances filteredTesting) throws Exception {
+
+        //Create the cost sensitive classifier and set costMatrix
+        CostSensitiveClassifier csc = new CostSensitiveClassifier();
+        csc.setCostMatrix(createCostMatrix());
+
+        csc.setMinimizeExpectedCost(false);
+        System.out.println(Arrays.toString(csc.getOptions()));
+
+        // SENSITIVE LEARNING
+        Evaluation evaluation = new Evaluation(filteredTesting,csc.getCostMatrix());
+        //Naive Bayes with feature selection and oversampling
+        csc.setClassifier(naiveBayesClassifier);
+        csc.buildClassifier(filteredTraining);
+        ClassifierEvaluation costSensitiveNaiveBayes = new ClassifierEvaluation(this.projName, i, NAIVE_BAYES, true, NO, LEARNING);
+        sensitiveLearningNaiveBayesList.add(evaluateClassifier(evaluation,costSensitiveNaiveBayes,csc,filteredTraining,filteredTesting));
+
+        // RandomForest with feature selection and oversampling
+        csc.setClassifier(randomForestClassifier);
+        csc.buildClassifier(filteredTraining);
+        ClassifierEvaluation costSensitiveRandomForest = new ClassifierEvaluation(this.projName, i, RANDOM_FOREST, true, NO, LEARNING);
+        sensitiveLearningRandomForestList.add(evaluateClassifier(evaluation,costSensitiveRandomForest,csc,filteredTraining,filteredTesting));
+
+        //IBK with feature selection and oversampling
+        csc.setClassifier(ibkClassifier);
+        csc.buildClassifier(filteredTraining);
+        ClassifierEvaluation costSensitiveIBk = new ClassifierEvaluation(this.projName, i, IBK, true, NO, LEARNING);
+        sensitiveLearningIBkList.add(evaluateClassifier(evaluation,costSensitiveIBk,csc,filteredTraining,filteredTesting));
+
+    }
 
     private int getIsntBuggyIstanceNumber(Instances training){
         int notBuggyInstance = 0;
@@ -357,6 +468,15 @@ public class WekaRetriever {
             if ( instance.toString(instance.numAttributes()-1).equals("false") ) notBuggyInstance++;
         }
         return notBuggyInstance;
+    }
+
+    private CostMatrix createCostMatrix() {
+        CostMatrix costMatrix = new CostMatrix(2);
+        costMatrix.setCell(0, 0, 0.0);
+        costMatrix.setCell(1, 0, WekaRetriever.fpWeight);
+        costMatrix.setCell(0, 1, WekaRetriever.fnWeight);
+        costMatrix.setCell(1, 1, 0.0);
+        return costMatrix;
     }
 
     private static ClassifierEvaluation evaluateClassifier(Evaluation evaluation, ClassifierEvaluation classifierEvaluation, AbstractClassifier classifierType,Instances training,Instances testing) throws Exception {

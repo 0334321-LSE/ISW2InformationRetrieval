@@ -4,14 +4,12 @@ import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 public class BugTicket {
 
     public BugTicket(){
     }
-    private static final Logger LOGGER = Logger.getLogger(BugTicket.class.getName());
 
     public BugTicket(String issueKey, LocalDate ticketsCreationDate, LocalDate ticketsResolutionDate, Version injectedVersion){
         this.issueKeys = issueKey;
@@ -36,9 +34,7 @@ public class BugTicket {
         return lastCommit;
     }
 
-    public void setTicketsCreationDate(LocalDate ticketsCreationDate) {
-        this.ticketsCreationDate = ticketsCreationDate;
-    }
+
 
     public void setInjectedVersion(Version injectedVersion){
         this.injectedVersion= injectedVersion;
@@ -127,7 +123,7 @@ public class BugTicket {
     }
 
     private void printVersionInformation(){
-        LOGGER.log(Level.INFO,"\n---------------------------------------------------------------------------" +
+        System.out.println("\n---------------------------------------------------------------------------" +
                 "\n TICKET:"+this.issueKeys+"\n | Injected Version: "+this.injectedVersion+"\n | Opening Version: "+this.openingVersion+
                 "\n| Fixed Version: "+this.fixedVersion+" |");
     }

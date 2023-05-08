@@ -5,7 +5,7 @@ import isw.project.file_model.CsvEnumaration;
 import isw.project.model.ClassInfo;
 import isw.project.model.VersionInfo;
 import isw.project.retriever.ClassInfoRetriever;
-import org.eclipse.jgit.api.errors.GitAPIException;
+
 
 
 import java.io.IOException;
@@ -16,7 +16,7 @@ import java.util.List;
 public class CSVWriter {
     private CSVWriter(){}
 
-    public static void writeArffForWalkForward(String projName, List<ClassInfo> javaClassesList, List<VersionInfo> versionInfoList, ClassInfoRetriever classInfoRetriever) throws IOException, GitAPIException {
+    public static void writeArffForWalkForward(String projName, List<ClassInfo> javaClassesList, List<VersionInfo> versionInfoList, ClassInfoRetriever classInfoRetriever) throws IOException {
         //VersionInfoList contains only version with commit associated
         int end;
         if (versionInfoList.size()%2 == 0) end = versionInfoList.size()/2;

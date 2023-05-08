@@ -31,9 +31,9 @@ import static isw.project.model.ClassInfo.updateJavaClassBuggyness;
 public class ClassInfoRetriever {
 
     private Git gitReference;
-    private Repository repository;
+    private final Repository repository;
     private final List<Version> versionList;
-    private List<BugTicket> ticketsWithAV;
+    private final List<BugTicket> ticketsWithAV;
 
     public ClassInfoRetriever(String repoPath, List<Version> versionList, List<BugTicket> bugTicketList) throws IOException {
         RepositoryBuilder repositoryBuilder = new RepositoryBuilder();
@@ -161,11 +161,11 @@ public class ClassInfoRetriever {
     }
 
     /** Returns ClassInfo list obtained from the classes contained into a VersionInfo list*/
-    public static List<ClassInfo> buildAllJavaClasses(List<VersionInfo> CommitsAssociatedWithVersion) {
+    public static List<ClassInfo> buildAllJavaClasses(List<VersionInfo> commitsAssociatedWithVersion) {
 
         List<ClassInfo> javaClasses = new ArrayList<>();
 
-        for(VersionInfo versionInfo : CommitsAssociatedWithVersion) {
+        for(VersionInfo versionInfo : commitsAssociatedWithVersion) {
             if(versionInfo.getVersion().getVersionName().equals("NULL"))
                 continue;
             for(Map.Entry<String, String> entryMap : versionInfo.getJavaClasses().entrySet()) {
@@ -181,9 +181,9 @@ public class ClassInfoRetriever {
 
     /** This method, for each VersionInfo , retrieves all the classes that were present
      * on that version date, and then sets these classes as attribute of the instance*/
-    public void getVersionAndClassAssociation(List<VersionInfo> CommitsAssociatedWithVersion) throws IOException {
+    public void getVersionAndClassAssociation(List<VersionInfo> commitsAssociatedWithVersion) throws IOException {
 
-        for(VersionInfo versionInfo : CommitsAssociatedWithVersion) {
+        for(VersionInfo versionInfo : commitsAssociatedWithVersion) {
             if(versionInfo.getCommitList().isEmpty())
                 //jmp to next iteration if that version doesn't have commits
                 continue;
@@ -196,10 +196,10 @@ public class ClassInfoRetriever {
 
     /** For each ClassInfo instance, retrieves a list of ALL the commits (not only the ones associated with some ticket) that have modified
      * the specified class for the specified release (where class and release are Class info attributes)*/
-    public void assignCommitsToClasses(List<ClassInfo> javaClasses, List<RevCommit> commits, List<VersionInfo> CommitsAssociatedWithVersion) throws IOException {
+    public void assignCommitsToClasses(List<ClassInfo> javaClasses, List<RevCommit> commits, List<VersionInfo> commitsAssociatedWithVersion) throws IOException {
 
         for(RevCommit commit : commits) {
-            Version associatedVersion = Version.getVersionOfCommit(commit, CommitsAssociatedWithVersion);
+            Version associatedVersion = Version.getVersionOfCommit(commit, commitsAssociatedWithVersion);
 
             if(associatedVersion != null) {		//There are also commits with no associatedRelease because their date is latter than last release date
                 List<String> modifiedClasses = getModifiedClasses(commit);

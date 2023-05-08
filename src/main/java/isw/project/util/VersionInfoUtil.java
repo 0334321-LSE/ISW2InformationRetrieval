@@ -1,6 +1,6 @@
 package isw.project.util;
 
-import isw.project.model.BugTicket;
+
 import isw.project.model.Version;
 import isw.project.model.VersionInfo;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -49,32 +49,6 @@ public class VersionInfoUtil {
         return lastCommit;
 
     }
-
-    public void getRemainingCommits(List<BugTicket> bugTicketList, List<RevCommit> commitList) {
-        List<RevCommit> remainingCommit = new ArrayList<>();
-        for (BugTicket bugTicket: bugTicketList){
-            remainingCommit.addAll(bugTicket.getAssociatedCommit());
-        }
-        commitList.removeAll(commitList);
-        commitList.addAll(remainingCommit);
-    }
-
-    /** From one commit gets corresponding version*/
-    public static Version getVersionOfCommit(RevCommit commit, List<VersionInfo> CommitsInfo) {
-
-        for(VersionInfo relComm : CommitsInfo) {
-            for(RevCommit c : relComm.getCommitList()) {
-                if(c.equals(commit)) {
-                    return relComm.getVersion();
-                }
-
-            }
-
-        }
-        return null;
-
-    }
-
 
 
 }

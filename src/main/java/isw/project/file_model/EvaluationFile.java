@@ -9,9 +9,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class EvaluationFile {
 
-    private String projName;
-    private List<ClassifierEvaluation> evaluationsList;
-    private String description;
+    private final String projName;
+    private final List<ClassifierEvaluation> evaluationsList;
+    private final String description;
 
     public EvaluationFile(String projName, List<ClassifierEvaluation> evaluationList, String description) {
         this.projName = projName;
@@ -29,7 +29,7 @@ public class EvaluationFile {
         File file = new File(pathname);
 
         if(!dir.exists() && !file.mkdirs()) {
-            throw new RuntimeException(); //Exception: dir creation impossible
+            throw new IOException(); //Exception: dir creation impossible
         }
 
         if(file.exists() && !file.delete()) {
@@ -85,12 +85,9 @@ public class EvaluationFile {
             }
             fw.write(evaluation.getSampling()+ ","); //Sampling type
 
-            if(evaluation.isCostSensitive()) { //Cost sensitive
-                fw.write("Sensitive learning"+ ",");
-            }
-            else {
-                fw.write("None"+",");
-            }
+
+            fw.write(evaluation.getCostSensitive()+ ",");  //Cost sensitive
+
 
             fw.write(evaluation.getPrecision() + ","); //Precision
             fw.write(evaluation.getRecall() + ","); //Recall

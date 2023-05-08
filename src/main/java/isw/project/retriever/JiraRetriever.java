@@ -14,15 +14,12 @@ import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.logging.Logger;
 
 import static java.lang.Integer.parseInt;
 
 public class JiraRetriever {
 
-    private static final Logger LOGGER = Logger.getLogger(JiraRetriever.class.getName());
-
-    //todo commenta tutti i metodi con il loro scopo
+    private static final String FIELDS ="fields";
     /** This method return a list that contains all bug tickets from jira*/
     public List<BugTicket> retrieveBugTicket(String projectName , List<Version> versionList) throws IOException, URISyntaxException {
         List<BugTicket> bugTickets = new ArrayList<>();
@@ -68,7 +65,7 @@ public class JiraRetriever {
         try {
             if(!issuesKeys.isEmpty() && !ticketsCreationDate.isEmpty() && !ticketsResolutionDate.isEmpty())
             {
-                LOGGER.info("\n---------------------------------------------------------------------------"+
+                System.out.println("\n---------------------------------------------------------------------------"+
                         "\n"+projectName.toUpperCase()+" issue tickets acquired");
                 Version affectedV;
 
@@ -78,9 +75,9 @@ public class JiraRetriever {
                     bugTickets.add(bugTicket);
                 }
 
-            } else  {throw new Exception("Error during ticket acquisition");}
+            } else  {throw new IOException("Error during ticket acquisition");}
         }catch (Exception e){
-            LOGGER.info("Somethings went wrong with issue tickets acquisition");
+            System.out.println("Somethings went wrong with issue tickets acquisition");
         }
 
         return bugTickets;
@@ -155,7 +152,7 @@ public class JiraRetriever {
     private void parseCreationDate(ArrayList<LocalDate> ticketsCreationDate, JSONArray jsonArray){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-d");
         for (int i = 0 ; i < jsonArray.length() ; i++) {
-            JSONObject fields = (JSONObject) jsonArray.getJSONObject(i).get("fields");
+            JSONObject fields = (JSONObject) jsonArray.getJSONObject(i).get(FIELDS);
             String dateString = fields.get("created").toString();
             dateString = dateString.split("T")[0];
             LocalDate localDate = LocalDate.parse(dateString, formatter);
@@ -167,7 +164,7 @@ public class JiraRetriever {
     private void parseResolutionDate(ArrayList<LocalDate> ticketsResolutionDate, JSONArray jsonArray){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-d");
         for (int i = 0 ; i < jsonArray.length() ; i++) {
-            JSONObject fields = (JSONObject) jsonArray.getJSONObject(i).get("fields");
+            JSONObject fields = (JSONObject) jsonArray.getJSONObject(i).get(FIELDS);
             String dateString = fields.get("resolutiondate").toString();
             dateString = dateString.split("T")[0];
             LocalDate localDate = LocalDate.parse(dateString, formatter);
@@ -181,7 +178,7 @@ public class JiraRetriever {
         Map<String,Integer> versionMap = mapGenerator.getVersionInteger(versionList);
 
         for (int i =0; i < jsonArray.length(); i++){
-            JSONObject fields = (JSONObject) jsonArray.getJSONObject(i).get("fields");
+            JSONObject fields = (JSONObject) jsonArray.getJSONObject(i).get(FIELDS);
             JSONArray versionArray = (JSONArray) fields.get("versions");
             if( versionArray.length() != 0) {
                 if (versionMap.containsKey(versionArray.getJSONObject(0).get("name").toString())){

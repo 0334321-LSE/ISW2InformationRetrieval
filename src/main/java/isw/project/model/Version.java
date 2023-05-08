@@ -6,11 +6,11 @@ import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+
 
 public class Version {
-    private static final Logger LOGGER = Logger.getLogger(Version.class.getName());
+
 
     private String versionName ;
     private LocalDate versionDate ;
@@ -42,7 +42,7 @@ public class Version {
 
 
     public void printVersionInfo(){
-        LOGGER.log(Level.INFO,"\n ----------------------------------------------\n| Name: "
+        System.out.println("\n ----------------------------------------------\n| Name: "
                 +this.versionName+"\n| Date: "+this.versionDate+"\n| ID: "+this.versionId+" |");
     }
 
@@ -66,8 +66,8 @@ public class Version {
         return versionMap;
     }
 
-    public static Version getVersionOfCommit(RevCommit commit, List<VersionInfo> CommitsAssociatedWithVersion){
-        for(VersionInfo versionInfo : CommitsAssociatedWithVersion) {
+    public static Version getVersionOfCommit(RevCommit commit, List<VersionInfo> commitsAssociatedWithVersion){
+        for(VersionInfo versionInfo : commitsAssociatedWithVersion) {
             for(RevCommit c : versionInfo.getCommitList()) {
                 if(c.equals(commit)) {
                     return versionInfo.getVersion();

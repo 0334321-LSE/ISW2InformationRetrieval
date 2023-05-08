@@ -13,7 +13,7 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.logging.Level;
+
 import java.util.logging.Logger;
 
 public class ExecutionFlow {
@@ -30,8 +30,7 @@ public class ExecutionFlow {
         //Retrieve info from JIRA and execute proportion
         JiraRetriever retriever = new JiraRetriever() ;
         List<Version> versionList = retriever.retrieveVersions(projectName) ;
-        LOGGER.log(Level.INFO,"\n ----------------------------------------------\n\t\t\t {} versions list N:"+versionList.size()
-                ,projectName.toUpperCase());
+        System.out.println("\n ----------------------------------------------\n\t\t\t"+projectName.toUpperCase()+" versions list N:"+versionList.size());
         retriever.printVersionList(versionList);
         List<BugTicket> bugTickets = retriever.retrieveBugTicket(projectName, versionList) ;
         Proportion.proportion(bugTickets, versionList,projectName);

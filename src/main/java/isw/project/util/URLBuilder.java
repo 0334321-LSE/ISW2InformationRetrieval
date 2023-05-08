@@ -1,6 +1,6 @@
 package isw.project.util;
 
-import org.json.JSONArray;
+
 
 import java.util.ArrayList;
 
@@ -54,9 +54,7 @@ public class URLBuilder {
     }
 
     private String addOrdering (String[] filterList){
-        //ORDER%20BY%20key%20ASC
         return "ORDER%20BY%20"+filterList[0]+"%20"+filterList[1];
-        //return "%20ORDER%20BY%20"+filterList[0]+"%20"+filterList[1]+"%2C";
     }
     private String buildUrlPart(String filterName, String[] filterList) {
         StringBuilder urlPart = new StringBuilder();

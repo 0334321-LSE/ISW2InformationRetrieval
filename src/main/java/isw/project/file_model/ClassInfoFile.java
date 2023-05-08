@@ -18,7 +18,7 @@ public class ClassInfoFile {
     private final int versionIndex;
     private final List<ClassInfo> javaClassesList;
 
-    public ClassInfoFile(String projName, CsvEnumaration csvName, int iterationIndex, int versionIndex, List<ClassInfo> javaClassesList) throws IOException {
+    public ClassInfoFile(String projName, CsvEnumaration csvName, int iterationIndex, int versionIndex, List<ClassInfo> javaClassesList){
         this.projName = projName;
         this.csvName = csvName;
         this.iterationIndex = iterationIndex;
@@ -52,7 +52,7 @@ public class ClassInfoFile {
         File file = new File(pathname);
 
         if(!dir.exists() && !file.mkdirs()) {
-            throw new RuntimeException(); //Exception: dir creation impossible
+            throw new IOException(); //Exception: dir creation impossible
         }
 
         if(file.exists() && !file.delete()) {
