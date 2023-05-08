@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static isw.project.model.ClassInfo.updateJavaClassBuggyness;
+import static isw.project.util.ClassInfoUtil.updateJavaClassBuggyness;
 
 public class ClassInfoRetriever {
 
@@ -34,6 +34,8 @@ public class ClassInfoRetriever {
     private final Repository repository;
     private final List<Version> versionList;
     private final List<BugTicket> ticketsWithAV;
+
+
 
     public ClassInfoRetriever(String repoPath, List<Version> versionList, List<BugTicket> bugTicketList) throws IOException {
         RepositoryBuilder repositoryBuilder = new RepositoryBuilder();
@@ -168,10 +170,7 @@ public class ClassInfoRetriever {
         for(VersionInfo versionInfo : commitsAssociatedWithVersion) {
             if(versionInfo.getVersion().getVersionName().equals("NULL"))
                 continue;
-            for(Map.Entry<String, String> entryMap : versionInfo.getJavaClasses().entrySet()) {
-                javaClasses.add(new ClassInfo(entryMap.getKey(), entryMap.getValue(), versionInfo.getVersion()));
-
-            }
+            javaClasses.addAll(versionInfo.getJavaClasses());
 
         }
 
@@ -183,12 +182,17 @@ public class ClassInfoRetriever {
      * on that version date, and then sets these classes as attribute of the instance*/
     public void getVersionAndClassAssociation(List<VersionInfo> commitsAssociatedWithVersion) throws IOException {
 
+        List<ClassInfo> javaClasses;
         for(VersionInfo versionInfo : commitsAssociatedWithVersion) {
+            javaClasses = new ArrayList<>();
             if(versionInfo.getCommitList().isEmpty())
                 //jmp to next iteration if that version doesn't have commits
                 continue;
-            Map<String, String> javaClasses = getClasses(versionInfo.getLastCommit());
-            versionInfo.setJavaClasses(javaClasses);
+            Map<String, String> javaClassesMap = getClasses(versionInfo.getLastCommit());
+            for(Map.Entry<String, String> entryMap : javaClassesMap.entrySet()) {
+                javaClasses.add(new ClassInfo(entryMap.getKey(), entryMap.getValue(), versionInfo.getVersion()));
+            }
+                versionInfo.setJavaClasses(javaClasses);
 
         }
 
@@ -204,8 +208,8 @@ public class ClassInfoRetriever {
             if(associatedVersion != null) {		//There are also commits with no associatedRelease because their date is latter than last release date
                 List<String> modifiedClasses = getModifiedClasses(commit);
 
-                for(String modifClass : modifiedClasses) {
-                    ClassInfo.updateJavaClassCommits(javaClasses, modifClass, associatedVersion, commit);
+                for(String modifiedClass : modifiedClasses) {
+                    ClassInfoUtil.updateJavaClassCommits(javaClasses, modifiedClass, associatedVersion, commit);
 
                 }
 

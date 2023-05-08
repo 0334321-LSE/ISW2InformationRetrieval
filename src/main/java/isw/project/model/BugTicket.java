@@ -1,26 +1,25 @@
 package isw.project.model;
 
+
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.time.LocalDate;
 import java.util.*;
 
 
+
 public class BugTicket {
 
-    public BugTicket(){
-    }
-
-    public BugTicket(String issueKey, LocalDate ticketsCreationDate, LocalDate ticketsResolutionDate, Version injectedVersion){
+    public BugTicket(String issueKey, LocalDate creationDate, LocalDate resolutionDate, Version injectedVersion){
         this.issueKeys = issueKey;
-        this.ticketsCreationDate = ticketsCreationDate;
-        this.ticketsResolutionDate = ticketsResolutionDate;
+        this.creationDate = creationDate;
+        this.resolutionDate = resolutionDate;
         this.injectedVersion = injectedVersion;
     }
 
-    private  String issueKeys;
-    private  LocalDate ticketsCreationDate;
-    private  LocalDate ticketsResolutionDate;
+    private final String issueKeys;
+    private final LocalDate creationDate;
+    private final LocalDate resolutionDate;
     private Version injectedVersion;
 
     private Version openingVersion;
@@ -66,7 +65,7 @@ public class BugTicket {
         return lastCommit;
 
     }
-    public void setVersionInfo(List<BugTicket> bugTickets, List<Version> versionList){
+    public static void setVersionInfo(List<BugTicket> bugTickets, List<Version> versionList){
 
         for (BugTicket bugTicket : bugTickets) {
 
@@ -85,7 +84,7 @@ public class BugTicket {
         Version ov = new Version();
 
         for (i=0; i< versionList.size() && flag==0; i++){
-            if (this.getTicketsCreationDate().isBefore(versionList.get(i).getVersionDate())) {
+            if (this.getCreationDate().isBefore(versionList.get(i).getVersionDate())) {
                 flag = 1;
                 ov = versionList.get(i);
             }
@@ -105,7 +104,7 @@ public class BugTicket {
         int flag =0;
         Version fv =  new Version();
         for (i=0; i< versionList.size() && flag==0; i++){
-            if (this.getTicketsResolutionDate().isBefore(versionList.get(i).getVersionDate())){
+            if (this.getResolutionDate().isBefore(versionList.get(i).getVersionDate())){
                 flag=1;
                 fv = versionList.get(i);
             }
@@ -122,26 +121,14 @@ public class BugTicket {
         return associatedCommit;
     }
 
-    private void printVersionInformation(){
-        System.out.println("\n---------------------------------------------------------------------------" +
-                "\n TICKET:"+this.issueKeys+"\n | Injected Version: "+this.injectedVersion+"\n | Opening Version: "+this.openingVersion+
-                "\n| Fixed Version: "+this.fixedVersion+" |");
-    }
-
-    public void printVersionInformationList(List<BugTicket> ticketVersionInformationList){
-        for ( BugTicket ticket: ticketVersionInformationList)
-            ticket.printVersionInformation();
-
-    }
-
     public String getIssueKey(){
         return this.issueKeys;
     }
-    public LocalDate getTicketsCreationDate(){
-        return this.ticketsCreationDate;
+    public LocalDate getCreationDate(){
+        return this.creationDate;
     }
-    public LocalDate getTicketsResolutionDate(){
-        return this.ticketsResolutionDate;
+    public LocalDate getResolutionDate(){
+        return this.resolutionDate;
     }
 
     public Version getOpeningVersion(){ return this.openingVersion;}

@@ -1,16 +1,19 @@
 package isw.project.model;
 
+import isw.project.control.ExecutionFlow;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class Version {
 
+    private static final Logger LOGGER = Logger.getLogger(Version.class.getName());
 
     private String versionName ;
     private LocalDate versionDate ;
@@ -27,6 +30,8 @@ public class Version {
         this.versionInt = versionInt;
     }
 
+    public void setVersionInt(int versionInt){ this.versionInt=versionInt;}
+
     public int getVersionInt() {
         return versionInt;
     }
@@ -42,8 +47,14 @@ public class Version {
 
 
     public void printVersionInfo(){
-        System.out.println("\n ----------------------------------------------\n| Name: "
-                +this.versionName+"\n| Date: "+this.versionDate+"\n| ID: "+this.versionId+" |");
+        String toPrint= String.format("""
+
+                 ----------------------------------------------
+                | Name: %s
+                | Date: %s
+                | ID: %s |""",this.versionName,this.versionDate,this.versionId);
+
+        LOGGER.log(Level.INFO,"%s",toPrint);
     }
 
     public static Version getVersionInfoFromName (String name, List<Version> list){

@@ -7,13 +7,16 @@ import isw.project.retriever.CommitRetriever;
 import isw.project.retriever.JiraRetriever;
 import isw.project.retriever.WekaRetriever;
 import isw.project.util.CSVWriter;
+import isw.project.util.LogWriter;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import java.util.List;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ExecutionFlow {
@@ -27,34 +30,42 @@ public class ExecutionFlow {
         // "C:\\Users\\39388\\OneDrive\\Desktop\\ISW2\\Projects\\GitRepository\\"
         Path repoPath = Paths.get("C:","Users","39388","OneDrive","Desktop","ISW2","Projects","GitRepository",projectName);
 
+        LOGGER.log(Level.INFO, ()-> String.format("%n%s data retrieving is starting.",projectName.toUpperCase()));
         //Retrieve info from JIRA and execute proportion
         JiraRetriever retriever = new JiraRetriever() ;
         List<Version> versionList = retriever.retrieveVersions(projectName) ;
-        System.out.println("\n ----------------------------------------------\n\t\t\t"+projectName.toUpperCase()+" versions list N:"+versionList.size());
+        LOGGER.log(Level.INFO, ()->String.format("%n ----------------------------------------------%n\t\t\t %s versions list N: %s",projectName.toUpperCase(),versionList.size()));
         retriever.printVersionList(versionList);
-        List<BugTicket> bugTickets = retriever.retrieveBugTicket(projectName, versionList) ;
-        Proportion.proportion(bugTickets, versionList,projectName);
+        List<BugTicket> bugTicketList = retriever.retrieveBugTicket(projectName, versionList) ;
+        Proportion.proportion(bugTicketList, versionList,projectName);
 
         //Retrieve commits form git for each ticket
         CommitRetriever commitRetriever = new CommitRetriever(versionList) ;
         List<RevCommit> allCommitsList = commitRetriever.retrieveAllCommitsInfo(repoPath.toString(), projectName);
-        commitRetriever.retrieveCommitFromTickets(bugTickets, allCommitsList);
+        commitRetriever.retrieveCommitFromTickets(bugTicketList, allCommitsList);
+        LogWriter.writeTicketLog(projectName,bugTicketList);
 
         //For each version, add the list of all commits of that version
         List<VersionInfo> versionInfoList = commitRetriever.getVersionAndCommitsAssociations(allCommitsList, versionList);
-        ClassInfoRetriever classInfoRetriever = new ClassInfoRetriever(repoPath.toString(), versionList,bugTickets);
+        ClassInfoRetriever classInfoRetriever = new ClassInfoRetriever(repoPath.toString(), versionList,bugTicketList);
         classInfoRetriever.getVersionAndClassAssociation(versionInfoList);
+        LogWriter.writeVersionLog(projectName,versionInfoList);
+        //Remove if that version doesn't have commits
+        versionInfoList.removeIf(versionInfo -> versionInfo.getCommitList().isEmpty() );
 
         //Obtain a list of classInfo with all the java classes in the project
         List<ClassInfo> javaClassesList = ClassInfoRetriever.buildAllJavaClasses(versionInfoList);
         classInfoRetriever.assignCommitsToClasses(javaClassesList,allCommitsList, versionInfoList);
 
         //Compute metrics update javaClassesList adding metric values
-        ComputeMetrics computeMetrics = new ComputeMetrics(classInfoRetriever, javaClassesList, versionInfoList, bugTickets);
+        ComputeMetrics computeMetrics = new ComputeMetrics(classInfoRetriever, javaClassesList, versionInfoList, bugTicketList);
         javaClassesList = computeMetrics.doAllMetricsComputation();
+        classInfoRetriever.labelClasses(versionInfoList,javaClassesList);
+        LogWriter.writeBuggyClassesLog(projectName,versionInfoList);
 
         //Create arff file for WalkForward validation technique
         CSVWriter.writeArffForWalkForward(projectName,javaClassesList,versionInfoList, classInfoRetriever);
+
 
         int wfIterationNumber;
         if (versionInfoList.size()%2 == 0) wfIterationNumber = versionInfoList.size()/2 +1;

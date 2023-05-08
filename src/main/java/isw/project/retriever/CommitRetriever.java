@@ -1,5 +1,6 @@
 package isw.project.retriever;
 
+
 import isw.project.model.Version;
 import isw.project.model.BugTicket;
 import isw.project.model.VersionInfo;
@@ -19,6 +20,8 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,6 +29,7 @@ import static isw.project.util.VersionInfoUtil.getCommitsOfVersion;
 
 public class CommitRetriever {
     private final List<Version> versionList;
+    private static final Logger LOGGER = Logger.getLogger(CommitRetriever.class.getName());
 
     public CommitRetriever(List<Version> versionList){
         this.versionList = versionList;
@@ -61,8 +65,7 @@ public class CommitRetriever {
         }
 
         discardTicketWithoutCommit(bugTicketList);
-        System.out.println("\nValid ticket with associated commits are: "+bugTicketList.size()+
-                "\nRemaining commits are: "+countCommit(bugTicketList));
+        LOGGER.log(Level.INFO, ()->String.format("%nValid ticket with associated commits are: %s%nRemaining commits are: %s",bugTicketList.size(),countCommit(bugTicketList)));
 
     }
 
@@ -97,8 +100,7 @@ public class CommitRetriever {
             commitsAssociatedWithVersion.add(getCommitsOfVersion(allCommitsList, version, firstDate));
             firstDate = version.getVersionDate();
         }
-        //Remove if that version doesn't have commits
-        commitsAssociatedWithVersion.removeIf(commitInfo -> commitInfo.getCommitList().isEmpty() );
+
 
         return commitsAssociatedWithVersion;
 

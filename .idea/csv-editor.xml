@@ -27,7 +27,7 @@
         <entry key="\retrieved_data\projectClasses\bookkeeper\bookkeeper_WF_2\bookkeeper_TR2.csv">
           <value>
             <Attribute>
-              <option name="separator" value="&#9;" />
+              <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
