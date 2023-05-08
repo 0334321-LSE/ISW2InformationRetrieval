@@ -4,10 +4,14 @@ import isw.project.model.Version;
 import isw.project.retriever.JiraRetriever;
 import isw.project.model.BugTicket;
 
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class Proportion {
@@ -16,28 +20,30 @@ public class Proportion {
         throw new IllegalStateException("This class does not have to be instantiated.");
     }
 
+    private static final Logger LOGGER = Logger.getLogger(ExecutionFlow.class.getName());
+
     private static final String[] PROJECT_NAMES = {"bookkeeper", "avro", "openjpa", "zookeeper", "syncope","tajo"};
 
     /** Use proportion to obtain injected version where there isn't */
     public static void proportion(List<BugTicket> bugTickets, List<Version> versionList, String projectName) throws URISyntaxException, IOException {
-        BugTicket ticketInfoRetriever = new BugTicket();
-        ticketInfoRetriever.setVersionInfo(bugTickets, versionList);
 
+        BugTicket.setVersionInfo(bugTickets, versionList);
 
-        System.out.println("\n ----------------------------------------------\n"+
-                "Using cold start to obtains proportion value");
-        double proportionValue = calculateProportionValueWithColdStart(projectName);
-        System.out.println("\n ----------------------------------------------\nThe proportion value from cold start is -->"+ proportionValue);
-        proportionOnInjectVersion(bugTickets,proportionValue, versionList);
+        LOGGER.log(Level.INFO, ()->("\n ----------------------------------------------\nUsing cold start to obtains proportion value"));
+        List<Double> proportionValues = calculateProportionValueWithColdStart(projectName);
+        Collections.sort(proportionValues);
+        LOGGER.log(Level.INFO, ()->String.format("\n ----------------------------------------------\nThe array of proportion values is --->%s\nThe proportion value from cold start is -->%s",proportionValues,obtainMedian(proportionValues)));
+        proportionOnInjectVersion(bugTickets,obtainMedian(proportionValues), versionList);
 
         //Discard the invalid tickets after the end of proportion
         discardInvalidTicket(bugTickets, versionList);
+
     }
 
     /** Discard malformed ticket */
    private static void discardInvalidTicket(List<BugTicket> bugTicketsList, List<Version> versionList){
        //RemoveIF
-       bugTicketsList.removeIf(bugTicket-> bugTicket.getTicketsCreationDate().isBefore(versionList.get(0).getVersionDate()));
+       bugTicketsList.removeIf(bugTicket-> bugTicket.getCreationDate().isBefore(versionList.get(0).getVersionDate()));
        //RemoveIF there are some tickets without OV or FV
        bugTicketsList.removeIf(bugTicket -> bugTicket.getOpeningVersion().getVersionName().equals("NULL") || bugTicket.getFixedVersion().getVersionName().equals("NULL"));
        //RemoveIF there are some tickets with FV == OV == First Version
@@ -69,7 +75,7 @@ public class Proportion {
         return bugTicketListForProportion;
     }
 
-    /**Calculate proportion coefficient for each apache project and then return the average */
+    /** Calculate proportion coefficient for each apache project and then return the average */
     private static double calculateProportioningCoefficient(List<BugTicket> bugTicketsListForProportion){
 
         ArrayList<Double> proportionValues = new ArrayList<>();
@@ -138,7 +144,7 @@ public class Proportion {
     }
 
     /** Evaluates the proportion value using cold start technique using all the other projects */
-    private static double calculateProportionValueWithColdStart(String projectName) throws URISyntaxException, IOException {
+    private static List<Double> calculateProportionValueWithColdStart(String projectName) throws URISyntaxException, IOException {
         JiraRetriever retriever = new JiraRetriever() ;
         List<Double> proportionValue = new ArrayList<>();
         double localProportionValue;
@@ -154,11 +160,11 @@ public class Proportion {
                 List<BugTicket> bugTicketsForProportion = correctBugTicketListForProportioning(bugTickets);
                 localProportionValue = calculateProportioningCoefficient(bugTicketsForProportion);
                 proportionValue.add(localProportionValue);
-                System.out.println("\nProportion value for "+project.toUpperCase()+" is--> {}"+localProportionValue+"\n");
+                LOGGER.log(Level.INFO, String.format("\nProportion value for %s is--> %s",project.toUpperCase(),localProportionValue+"\n"));
 
             }
         }
-        return obtainMedian(proportionValue);
+        return proportionValue;
     }
 
 }

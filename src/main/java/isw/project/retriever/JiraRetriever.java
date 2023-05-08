@@ -1,8 +1,10 @@
 package isw.project.retriever;
 
+import isw.project.control.ExecutionFlow;
 import isw.project.model.Version;
 import isw.project.util.URLBuilder;
 import isw.project.model.BugTicket;
+import isw.project.util.VersionUtil;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -14,10 +16,13 @@ import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static java.lang.Integer.parseInt;
 
 public class JiraRetriever {
+    private static final Logger LOGGER = Logger.getLogger(ExecutionFlow.class.getName());
 
     private static final String FIELDS ="fields";
     /** This method return a list that contains all bug tickets from jira*/
@@ -65,8 +70,7 @@ public class JiraRetriever {
         try {
             if(!issuesKeys.isEmpty() && !ticketsCreationDate.isEmpty() && !ticketsResolutionDate.isEmpty())
             {
-                System.out.println("\n---------------------------------------------------------------------------"+
-                        "\n"+projectName.toUpperCase()+" issue tickets acquired");
+                LOGGER.log(Level.INFO, ()->String.format("\n---------------------------------------------------------------------------\n%s issue tickets acquired",projectName.toUpperCase()));
                 Version affectedV;
 
                 for(int i=0; i< issuesKeys.size();i++){
@@ -77,7 +81,7 @@ public class JiraRetriever {
 
             } else  {throw new IOException("Error during ticket acquisition");}
         }catch (Exception e){
-            System.out.println("Somethings went wrong with issue tickets acquisition");
+            LOGGER.log(Level.INFO,"Somethings went wrong with issue tickets acquisition");
         }
 
         return bugTickets;
@@ -113,7 +117,7 @@ public class JiraRetriever {
         LocalDate nullVersionDate = LocalDate.parse("1900-01-01");
         versionList.add( new Version("NULL",nullVersionDate,"nullversion",0));
         versionList.sort(Comparator.comparing(Version::getVersionDate));
-
+        VersionUtil.resetIntValueOfVersion(versionList);
         return versionList;
     }
 

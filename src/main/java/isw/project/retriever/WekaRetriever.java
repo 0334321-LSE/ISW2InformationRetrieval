@@ -40,8 +40,8 @@ public class WekaRetriever {
     private static final String SMOTE ="Smote";
 
     //Error type cost
-    private static final double fpWeight = 1.0;
-    private static final double fnWeight = 10.0;
+    private static final double FP_WEIGHT = 1.0;
+    private static final double FN_WEIGHT = 10.0;
 
     //Sensitive type
     private static final String THRESHOLD ="Threshold";
@@ -185,6 +185,7 @@ public class WekaRetriever {
         return allEvaluationList;
     }
 
+    /** Merge all the evaluation list into one */
     private void mergeAllListOrdered(List<ClassifierEvaluation> allEvaluationList){
         for( int i = 0; i<simpleNaiveBayesList.size(); i++){
             allEvaluationList.add(simpleNaiveBayesList.get(i));
@@ -215,35 +216,6 @@ public class WekaRetriever {
             allEvaluationList.add(sensitiveThresholdIBkList.get(k));
             allEvaluationList.add(sensitiveLearningIBkList.get(k));
         }
-    }
-
-
-    /** Merge all the evaluation list into one */
-    private void mergeAllList(List<ClassifierEvaluation> allEvaluationList){
-        allEvaluationList.addAll(simpleNaiveBayesList);
-        allEvaluationList.addAll(featureNaiveBayesList);
-        allEvaluationList.addAll(undersamplingNaiveBayesList);
-        allEvaluationList.addAll(oversamplingNaiveBayesList);
-        allEvaluationList.addAll(smoteNaiveBayesList);
-        allEvaluationList.addAll(sensitiveThresholdNaiveBayesList);
-        allEvaluationList.addAll(sensitiveLearningNaiveBayesList);
-
-        allEvaluationList.addAll(simpleRandomForestList);
-        allEvaluationList.addAll(featureRandomForestList);
-        allEvaluationList.addAll(undersamplingRandomForestList);
-        allEvaluationList.addAll(oversamplingRandomForestList);
-        allEvaluationList.addAll(smoteRandomForestList);
-        allEvaluationList.addAll(sensitiveThresholdRandomForestList);
-        allEvaluationList.addAll(sensitiveLearningRandomForestList);
-
-
-        allEvaluationList.addAll(simpleIBkList);
-        allEvaluationList.addAll(featureIBkList);
-        allEvaluationList.addAll(undersamplingIBkList);
-        allEvaluationList.addAll(oversamplingIBkList);
-        allEvaluationList.addAll(smoteIBkList);
-        allEvaluationList.addAll(sensitiveThresholdIBkList);
-        allEvaluationList.addAll(sensitiveLearningIBkList);
     }
 
     /** Does the simple evaluation without any feature selection/sampling/cost sensitive */
@@ -327,7 +299,7 @@ public class WekaRetriever {
         //sampleSizePercent is equal to Y where Y/2 is equal to the percentage of the majority instance
         int notBuggy = getIsntBuggyIstanceNumber(filteredTraining);
         double percentage = ((double) notBuggy /filteredTraining.size())*100;
-        System.out.println(i+") "+notBuggy+ " percentage is :" + percentage);
+
 
         Resample resample = new Resample();
         resample.setInputFormat(filteredTraining);
@@ -365,7 +337,7 @@ public class WekaRetriever {
         double percentage = ((double) (notBuggy-buggy)/buggy) * 100;
         //
         if ( buggy == 0 ) percentage = 0;
-        System.out.println(i+") "+notBuggy+ " percentage is :" + percentage);
+
 
         FilteredClassifier fc = new FilteredClassifier();
 
@@ -406,7 +378,7 @@ public class WekaRetriever {
 
         // SENSITIVE THRESHOLD
         csc.setMinimizeExpectedCost(true);
-        System.out.println(Arrays.toString(csc.getOptions()));
+
 
 
         Evaluation evaluation = new Evaluation(filteredTesting,csc.getCostMatrix());
@@ -438,7 +410,7 @@ public class WekaRetriever {
         csc.setCostMatrix(createCostMatrix());
 
         csc.setMinimizeExpectedCost(false);
-        System.out.println(Arrays.toString(csc.getOptions()));
+
 
         // SENSITIVE LEARNING
         Evaluation evaluation = new Evaluation(filteredTesting,csc.getCostMatrix());
@@ -473,8 +445,8 @@ public class WekaRetriever {
     private CostMatrix createCostMatrix() {
         CostMatrix costMatrix = new CostMatrix(2);
         costMatrix.setCell(0, 0, 0.0);
-        costMatrix.setCell(1, 0, WekaRetriever.fpWeight);
-        costMatrix.setCell(0, 1, WekaRetriever.fnWeight);
+        costMatrix.setCell(1, 0, WekaRetriever.FP_WEIGHT);
+        costMatrix.setCell(0, 1, WekaRetriever.FN_WEIGHT);
         costMatrix.setCell(1, 1, 0.0);
         return costMatrix;
     }

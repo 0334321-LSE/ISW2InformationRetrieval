@@ -3,20 +3,21 @@ package isw.project.model;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-public class VersionInfo {
+
+public class VersionInfo implements Comparable<VersionInfo>{
     private final Version version;
     private final List<RevCommit> commitList;
     private final RevCommit lastCommit;
-    private Map<String,String> javaClasses;
+    private List<ClassInfo> javaClasses;
 
     public VersionInfo(Version version, List<RevCommit> commitList, RevCommit lastCommit){
         this.version = version;
         this.commitList=commitList;
         this.lastCommit=lastCommit;
-        this.javaClasses=null;
+        this.javaClasses= new ArrayList<>();
     }
 
     public Version getVersion() {
@@ -32,11 +33,11 @@ public class VersionInfo {
         return lastCommit;
     }
 
-    public Map<String, String> getJavaClasses() {
+    public List<ClassInfo> getJavaClasses() {
         return javaClasses;
     }
 
-    public void setJavaClasses(Map<String, String> javaClasses) {
+    public void setJavaClasses(List<ClassInfo> javaClasses) {
         this.javaClasses = javaClasses;
     }
 
@@ -57,5 +58,13 @@ public class VersionInfo {
 
     }
 
+
+    @Override
+    public int compareTo(VersionInfo u) {
+        if (getVersion() == null || u.getVersion() == null) {
+            return 0;
+        }
+        return Integer.compare(getVersion().getVersionInt(), getVersion().getVersionInt());
+    }
 
 }

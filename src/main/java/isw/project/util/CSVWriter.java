@@ -21,7 +21,7 @@ public class CSVWriter {
         int end;
         if (versionInfoList.size()%2 == 0) end = versionInfoList.size()/2;
         else end = (versionInfoList.size()+1)/2;
-
+        ClassInfoUtil.resetBuggyness(javaClassesList);
         //Since it has 2 version, start WalkForward
         for(int i=2; i<=end; i++){
             List<ClassInfo> filteredTrainingJavaClassesList = new ArrayList<>();
