@@ -32,7 +32,7 @@ public class Proportion {
         LOGGER.log(Level.INFO, ()->("%n ----------------------------------------------%nUsing cold start to obtains proportion value"));
         List<Double> proportionValues = calculateProportionValueWithColdStart(projectName);
         Collections.sort(proportionValues);
-        LOGGER.log(Level.INFO, ()->String.format("%n ----------------------------------------------%nThe array of proportion values is --->%s\nThe proportion value from cold start is -->%s",proportionValues,obtainMedian(proportionValues)));
+        LOGGER.log(Level.INFO, ()->String.format("%n ----------------------------------------------%nThe array of proportion values is --->%s%nThe proportion value from cold start is -->%s",proportionValues,obtainMedian(proportionValues)));
         proportionOnInjectVersion(bugTickets,obtainMedian(proportionValues), versionList);
 
         //Discard the invalid tickets after the end of proportion

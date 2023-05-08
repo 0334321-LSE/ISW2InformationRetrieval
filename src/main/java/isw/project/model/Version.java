@@ -1,6 +1,6 @@
 package isw.project.model;
 
-import isw.project.control.ExecutionFlow;
+
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.time.LocalDate;
@@ -47,14 +47,7 @@ public class Version {
 
 
     public void printVersionInfo(){
-        String toPrint= String.format("""
-
-                 ----------------------------------------------
-                | Name: %s
-                | Date: %s
-                | ID: %s |""",this.versionName,this.versionDate,this.versionId);
-
-        LOGGER.log(Level.INFO,"%s",toPrint);
+        LOGGER.log(Level.INFO,()->String.format("%n ---------------------------------------------- %n| Name: %s %n| Date: %s %n| ID: %s %n|",this.versionName,this.versionDate,this.versionId));
     }
 
     public static Version getVersionInfoFromName (String name, List<Version> list){
