@@ -55,7 +55,7 @@ public class ComputeMetrics {
     private void computeNR() {
 
         for(ClassInfo javaClass : this.javaClassesList) {
-            javaClass.setNr(javaClass.getCommits().size());
+            javaClass.setRevisionNumber(javaClass.getCommits().size());
 
         }
 
@@ -85,14 +85,20 @@ public class ComputeMetrics {
         int churn = 0;
         int maxChurn = 0;
         double avgChurn = 0;
+        int sumOfTheDeletedLOC = 0;
+        int maxDeletedLOC = 0;
+        double avgDeletedLOC = 0;
 
         for(int i=0; i<javaClass.getAddedLinesList().size(); i++) {
 
             int currentLOC = javaClass.getAddedLinesList().get(i);
+            int currentDeletedLOC = javaClass.getDeletedLinesList().get(i);
             int currentDiff = Math.abs(javaClass.getAddedLinesList().get(i) - javaClass.getDeletedLinesList().get(i));
 
             sumLOC = sumLOC + currentLOC;
             churn = churn + currentDiff;
+            sumOfTheDeletedLOC = sumOfTheDeletedLOC + currentDeletedLOC;
+
 
             if(currentLOC > maxLOC) {
                 maxLOC = currentLOC;
@@ -100,7 +106,9 @@ public class ComputeMetrics {
             if(currentDiff > maxChurn) {
                 maxChurn = currentDiff;
             }
-
+            if(currentDeletedLOC > maxDeletedLOC) {
+                maxDeletedLOC = currentDeletedLOC;
+            }
         }
 
         //If a class has 0 revisions, its AvgLocAdded and AvgChurn are 0 (see initialization above).
@@ -110,6 +118,9 @@ public class ComputeMetrics {
         if(!javaClass.getAddedLinesList().isEmpty()) {
             avgChurn = 1.0*churn/javaClass.getAddedLinesList().size();
         }
+        if(!javaClass.getDeletedLinesList().isEmpty()) {
+            avgDeletedLOC = 1.0*sumOfTheDeletedLOC/javaClass.getAddedLinesList().size();
+        }
 
         javaClass.setLocAdded(sumLOC);
         javaClass.setMaxLocAdded(maxLOC);
@@ -117,6 +128,9 @@ public class ComputeMetrics {
         javaClass.setChurn(churn);
         javaClass.setMaxChurn(maxChurn);
         javaClass.setAvgChurn(avgChurn);
+        javaClass.setLocDeleted(sumOfTheDeletedLOC);
+        javaClass.setMaxLocDeleted(maxDeletedLOC);
+        javaClass.setAvgLocDeleted(avgDeletedLOC);
 
     }
 

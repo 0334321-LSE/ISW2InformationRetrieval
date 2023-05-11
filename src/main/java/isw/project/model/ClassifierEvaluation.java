@@ -6,7 +6,7 @@ public class ClassifierEvaluation {
     private final int walkForwardIterationIndex;
     private double trainingPercent;
     private final String classifier;
-    private final boolean featureSelection;
+    private final String featureSelection;
     private final String sampling;
     private final String costSensitive;
     private double precision;
@@ -18,7 +18,7 @@ public class ClassifierEvaluation {
     private double tn;
     private double fn;
 
-    public ClassifierEvaluation(String projName, int index, String classifier, boolean featureSelection, String sampling, String costSensitive) {
+    public ClassifierEvaluation(String projName, int index, String classifier, String featureSelection, String sampling, String costSensitive) {
         this.projName = projName;
         this.walkForwardIterationIndex = index;
         this.classifier = classifier;
@@ -49,7 +49,7 @@ public class ClassifierEvaluation {
         return classifier;
     }
 
-    public boolean isFeatureSelection() {
+    public String getFeatureSelection() {
         return featureSelection;
     }
 

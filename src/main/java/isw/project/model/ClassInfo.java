@@ -13,8 +13,8 @@ public class ClassInfo {
     private boolean isBuggy;
 
     private int size;
-    private int nr;
-    private int nFix;
+    private int revisionNumber;
+    private int fixedDefects;
     private int nAuth;
     private int locAdded;
     private int maxLocAdded;
@@ -22,9 +22,38 @@ public class ClassInfo {
     private int churn;
     private int maxChurn;
     private double avgChurn;
+    private int locDeleted;
+    private int maxLocDeleted;
+    private double avgLocDeleted;
 
     private final List<Integer> addedLinesList;
     private final List<Integer> deletedLinesList;
+
+
+    public int getLocDeleted() {
+        return locDeleted;
+    }
+
+    public int getMaxLocDeleted() {
+        return maxLocDeleted;
+    }
+
+    public double getAvgLocDeleted() {
+        return avgLocDeleted;
+    }
+
+    public void setLocDeleted(int locDeleted) {
+        this.locDeleted = locDeleted;
+    }
+
+
+    public void setMaxLocDeleted(int maxLocDeleted) {
+        this.maxLocDeleted = maxLocDeleted;
+    }
+
+    public void setAvgLocDeleted(double avgLocDeleted) {
+        this.avgLocDeleted = avgLocDeleted;
+    }
 
     public List<Integer> getAddedLinesList() {
         return addedLinesList;
@@ -54,12 +83,12 @@ public class ClassInfo {
         this.size = size;
     }
 
-    public int getNr() {
-        return nr;
+    public int getRevisionNumber() {
+        return revisionNumber;
     }
 
-    public void setNr(int nr) {
-        this.nr = nr;
+    public void setRevisionNumber(int revisionNumber) {
+        this.revisionNumber = revisionNumber;
     }
 
     public int getnAuth() {
@@ -118,12 +147,12 @@ public class ClassInfo {
         this.avgChurn = avgChurn;
     }
 
-    public int getnFix() {
-        return nFix;
+    public int getFixedDefects() {
+        return fixedDefects;
     }
 
     public void updateNFix() {
-        this.nFix += 1;
+        this.fixedDefects += 1;
     }
 
 
@@ -135,8 +164,8 @@ public class ClassInfo {
       this.isBuggy = false;
 
       this.size = 0;
-      this.nr = 0;
-      this.nFix = 0;
+      this.revisionNumber = 0;
+      this.fixedDefects = 0;
       this.nAuth = 0;
       this.locAdded = 0;
       this.maxLocAdded = 0;

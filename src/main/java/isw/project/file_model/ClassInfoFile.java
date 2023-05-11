@@ -69,20 +69,25 @@ public class ClassInfoFile {
 
         try(FileWriter fw = new FileWriter(file)) {
 
-            fw.write( "JAVA_CLASS,"+
+            fw.write("JAVA_CLASS," +
                     "VERSION," +
-                    "SIZE," +
-                    "NR," +
-                    "NFix," +
-                    "N_AUTH," +
+                    "LOC," +
                     "LOC_ADDED," +
                     "MAX_LOC_ADDED," +
                     "AVG_LOC_ADDED," +
+                    "LOC_DELETED," +
+                    "MAX_LOC_DELETED," +
+                    "AVG_LOC_DELETED," +
                     "CHURN," +
                     "MAX_CHURN," +
                     "AVG_CHURN," +
+                    "FIXED_DEFECTS," +
                     "NUMBER_OF_COMMITS," +
-                    "IS_BUGGY,\n");
+                    "NUMBER_OF_AUTHORS," +
+                    "N_REVISION,"+
+                    "IS_BUGGY\n");
+
+
 
             writeDataOnFile( fw, false);
         }
@@ -97,10 +102,10 @@ public class ClassInfoFile {
         File file = createANewFile(projName, ".arff");
         try (FileWriter wr = new FileWriter(file)) {
 
-            wr.write("@relation " + this.projName + fileNameStr + "\n");
+       /*     wr.write("@relation " + this.projName + fileNameStr + "\n");
             wr.write("@attribute SIZE numeric\n");
-            wr.write("@attribute NR numeric\n");
-            wr.write("@attribute NFix numeric\n");
+            wr.write("@attribute REVISION numeric\n");
+            wr.write("@attribute FIXED_DEFECTS numeric\n");
             wr.write("@attribute N_AUTH numeric\n");
             wr.write("@attribute LOC_ADDED numeric\n");
             wr.write("@attribute MAX_LOC_ADDED numeric\n");
@@ -109,6 +114,24 @@ public class ClassInfoFile {
             wr.write("@attribute MAX_CHURN numeric\n");
             wr.write("@attribute AVG_CHURN numeric\n");
             wr.write("@attribute NUMBER_OF_COMMITS numeric\n");
+            wr.write("@attribute IS_BUGGY {'true', 'false'}\n");
+            wr.write("@data\n");*/
+
+            wr.write("@relation " + this.projName + fileNameStr + "\n");
+            wr.write("@attribute LOC numeric\n");
+            wr.write("@attribute LOC_ADDED numeric\n");
+            wr.write("@attribute MAX_LOC_ADDED numeric\n");
+            wr.write("@attribute AVG_LOC_ADDED numeric\n");
+            wr.write("@attribute LOC_DELETED numeric\n");
+            wr.write("@attribute MAX_LOC_DELETED numeric\n");
+            wr.write("@attribute AVG_LOC_DELETED numeric\n");
+            wr.write("@attribute CHURN numeric\n");
+            wr.write("@attribute MAX_CHURN numeric\n");
+            wr.write("@attribute AVG_CHURN numeric\n");
+            wr.write("@attribute FIXED_DEFECTS numeric\n");
+            wr.write("@attribute NUMBER_OF_COMMITS numeric\n");
+            wr.write("@attribute NUMBER_OF_AUTHORS numeric\n");
+            wr.write("@attribute REVISION_NUMBER numeric\n");
             wr.write("@attribute IS_BUGGY {'true', 'false'}\n");
             wr.write("@data\n");
 
@@ -126,18 +149,20 @@ public class ClassInfoFile {
                 fw.write(javaClass.getName() + ","); //JAVA_CLASS
                 fw.write(javaClass.getVersion().getVersionInt() + ","); //VERSION
             }
-            fw.write(javaClass.getSize() + ","); //SIZE
-            fw.write(javaClass.getNr() + ","); //Nr
-            fw.write(javaClass.getnFix() + ","); //NFix
-            fw.write(javaClass.getnAuth()+ ","); //NUMBER OF AUTHORS
+            fw.write(javaClass.getSize() + ","); //SIZE(LINES OF CODE)
             fw.write(javaClass.getLocAdded() + ","); //LOC_ADDED
             fw.write(javaClass.getMaxLocAdded() + ","); //MAX_LOC_ADDED
             fw.write(javaClass.getAvgLocAdded() + ","); //AVG_LOC_ADDED
+            fw.write(javaClass.getLocDeleted() + ","); //LOC_DELETED
+            fw.write(javaClass.getMaxLocDeleted() + ","); //MAX_LOC_DELETED
+            fw.write(javaClass.getAvgLocDeleted() + ","); //AVG_LOC_DELETED
             fw.write(javaClass.getChurn() + ","); //CHURN
             fw.write(javaClass.getMaxChurn() + ","); //MAX_CHURN
             fw.write(javaClass.getAvgChurn() + ","); //AVG_CHURN
+            fw.write(javaClass.getFixedDefects() + ","); //FIXED_DEFECTS
             fw.write(javaClass.getCommits().size() + ","); //NUMBER_OF_COMMITS
-
+            fw.write(javaClass.getnAuth() + ","); //NUMBER_OF_AUTHORS
+            fw.write(javaClass.getRevisionNumber()+","); //NUMBER_OF_REVISION
             fw.write(javaClass.isBuggy()); //IS_BUGGY
 
             fw.write("\n");

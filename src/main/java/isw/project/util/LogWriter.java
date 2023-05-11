@@ -81,6 +81,7 @@ public class LogWriter {
 
 
     public static void writeBuggyClassesLog(String projectName, List<VersionInfo> versionInfoList) throws IOException {
+        int totalBuggyClasses =0;
         Files.createDirectories(buildLogPath(projectName)) ;
         Writer writer = new BufferedWriter(new FileWriter(Path.of(buildLogPath(projectName).toString(), "BuggyClasses").toString())) ;
 
@@ -95,8 +96,9 @@ public class LogWriter {
             }
             stringBuilder.append("Numero Buggy >> ").append(buggyClassesNumber).append("\n") ;
             stringBuilder.append(SEPARATOR).append("\n\n") ;
+            totalBuggyClasses += buggyClassesNumber;
         }
-
+        stringBuilder.append("Total buggy classes >> ").append(totalBuggyClasses).append("\n");
         writer.write(stringBuilder.toString());
         writer.close();
     }

@@ -34,7 +34,7 @@ public class Proportion {
         Collections.sort(proportionValues);
         LOGGER.log(Level.INFO, ()->String.format("%n ----------------------------------------------%nThe array of proportion values is --->%s%nThe proportion value from cold start is -->%s",proportionValues,obtainMedian(proportionValues)));
         proportionOnInjectVersion(bugTickets,obtainMedian(proportionValues), versionList);
-
+        double median = obtainMedian(proportionValues);
         //Discard the invalid tickets after the end of proportion
         discardInvalidTicket(bugTickets, versionList);
 
@@ -103,7 +103,7 @@ public class Proportion {
         int size =proportionValues.size();
         if(proportionValues.size()%2 != 0)
             //if is odd ( n/2 )
-            return proportionValues.get((size+1)/2);
+            return proportionValues.get(((size+1)/2)-1);
         else
             //if is even ( n/2 + n/2+1 ) /2
             return (proportionValues.get((size/2)) + proportionValues.get((size/2)+1)) /2;

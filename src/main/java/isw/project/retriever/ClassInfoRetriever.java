@@ -11,13 +11,12 @@ import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.diff.RawTextComparator;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.ObjectReader;
+
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
-import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.util.io.DisabledOutputStream;
 
@@ -128,28 +127,24 @@ public class ClassInfoRetriever {
         //Here there will be the names of the classes that have been modified by the commit
         List<String> modifiedClasses = new ArrayList<>();
 
-        try(DiffFormatter diffFormatter = new DiffFormatter(DisabledOutputStream.INSTANCE);
-            ObjectReader reader = this.repository.newObjectReader()) {
+        try(DiffFormatter diffFormatter = new DiffFormatter(DisabledOutputStream.INSTANCE)){
 
-            CanonicalTreeParser newTreeIter = new CanonicalTreeParser();
-            ObjectId newTree = commit.getTree();
-            newTreeIter.reset(reader, newTree);
 
             //It's the previous commit of the commit we are considering
             RevCommit commitParent = commit.getParent(0);
-            CanonicalTreeParser oldTreeIter = new CanonicalTreeParser();
-            ObjectId oldTree = commitParent.getTree();
-            oldTreeIter.reset(reader, oldTree);
+
 
             diffFormatter.setRepository(this.repository);
-            List<DiffEntry> entries = diffFormatter.scan(oldTreeIter, newTreeIter);
+            diffFormatter.setDiffComparator(RawTextComparator.DEFAULT);
+
+            List<DiffEntry> entries = diffFormatter.scan(commitParent.getTree(), commit.getTree());
 
             //Every entry contains info for each file involved in the commit (old path name, new path name, change type (that could be MODIFY, ADD, RENAME, etc.))
             for(DiffEntry entry : entries) {
                 //We are keeping only Java classes that are not involved in tests
-                if(entry.getChangeType().equals(DiffEntry.ChangeType.MODIFY) && entry.getNewPath().contains(".java") && !entry.getNewPath().contains("/test/")) {
+               // if(entry.getChangeType().equals(DiffEntry.ChangeType.MODIFY) && entry.getNewPath().contains(".java") && !entry.getNewPath().contains("/test/")) {
                     modifiedClasses.add(entry.getNewPath());
-                }
+                //  }
 
             }
 
@@ -234,7 +229,7 @@ public class ClassInfoRetriever {
                     if(entry.getNewPath().equals(javaClass.getName())) {
                         javaClass.getAddedLinesList().add(getAddedLines(diffFormatter, entry));
                         javaClass.getDeletedLinesList().add(getDeletedLines(diffFormatter, entry));
-
+                        break;
                     }
 
                 }

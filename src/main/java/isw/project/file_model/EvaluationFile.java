@@ -77,12 +77,12 @@ public class EvaluationFile {
                 fw.write("None"+ ",");
             }
             fw.write(evaluation.getClassifier() + ","); //Classifiers
-            if(evaluation.isFeatureSelection()) {
-                fw.write("Best first"+ ",");
-            }
-            else {
-                fw.write("None"+ ",");
-            }
+
+            if(evaluation.getFeatureSelection().contains("None"))
+                fw.write(evaluation.getFeatureSelection()+ ","); //Feature selection type
+            else
+                fw.write("Best first "+evaluation.getFeatureSelection()+ ","); //Feature selection type
+
             fw.write(evaluation.getSampling()+ ","); //Sampling type
 
 

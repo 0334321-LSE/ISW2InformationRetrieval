@@ -68,7 +68,7 @@ public class ExecutionFlow {
 
 
         int wfIterationNumber;
-        if (versionInfoList.size()%2 == 0) wfIterationNumber = versionInfoList.size()/2 +1;
+        if (versionInfoList.size()%2 == 0) wfIterationNumber = versionInfoList.size()/2;
         else wfIterationNumber = (versionInfoList.size()+1)/2;
 
         //Uses WekaAPI to obtains accuracy metrics of classifiers
