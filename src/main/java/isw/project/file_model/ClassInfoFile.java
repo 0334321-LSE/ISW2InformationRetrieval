@@ -102,20 +102,6 @@ public class ClassInfoFile {
         File file = createANewFile(projName, ".arff");
         try (FileWriter wr = new FileWriter(file)) {
 
-       /*     wr.write("@relation " + this.projName + fileNameStr + "\n");
-            wr.write("@attribute SIZE numeric\n");
-            wr.write("@attribute REVISION numeric\n");
-            wr.write("@attribute FIXED_DEFECTS numeric\n");
-            wr.write("@attribute N_AUTH numeric\n");
-            wr.write("@attribute LOC_ADDED numeric\n");
-            wr.write("@attribute MAX_LOC_ADDED numeric\n");
-            wr.write("@attribute AVG_LOC_ADDED numeric\n");
-            wr.write("@attribute CHURN numeric\n");
-            wr.write("@attribute MAX_CHURN numeric\n");
-            wr.write("@attribute AVG_CHURN numeric\n");
-            wr.write("@attribute NUMBER_OF_COMMITS numeric\n");
-            wr.write("@attribute IS_BUGGY {'true', 'false'}\n");
-            wr.write("@data\n");*/
 
             wr.write("@relation " + this.projName + fileNameStr + "\n");
             wr.write("@attribute LOC numeric\n");

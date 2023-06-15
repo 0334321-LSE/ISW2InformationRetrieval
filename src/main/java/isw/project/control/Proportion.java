@@ -34,7 +34,6 @@ public class Proportion {
         Collections.sort(proportionValues);
         LOGGER.log(Level.INFO, ()->String.format("%n ----------------------------------------------%nThe array of proportion values is --->%s%nThe proportion value from cold start is -->%s",proportionValues,obtainMedian(proportionValues)));
         proportionOnInjectVersion(bugTickets,obtainMedian(proportionValues), versionList);
-        double median = obtainMedian(proportionValues);
         //Discard the invalid tickets after the end of proportion
         discardInvalidTicket(bugTickets, versionList);
 

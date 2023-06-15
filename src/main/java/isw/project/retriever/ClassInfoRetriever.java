@@ -142,9 +142,9 @@ public class ClassInfoRetriever {
             //Every entry contains info for each file involved in the commit (old path name, new path name, change type (that could be MODIFY, ADD, RENAME, etc.))
             for(DiffEntry entry : entries) {
                 //We are keeping only Java classes that are not involved in tests
-               // if(entry.getChangeType().equals(DiffEntry.ChangeType.MODIFY) && entry.getNewPath().contains(".java") && !entry.getNewPath().contains("/test/")) {
+
                     modifiedClasses.add(entry.getNewPath());
-                //  }
+
 
             }
 

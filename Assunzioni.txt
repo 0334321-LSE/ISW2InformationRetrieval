@@ -17,7 +17,8 @@ come assunzione si è scelto di scegliere la versione successiva.
 
 6)VERSION PROBLEM: Quando l’iv calcolato tramite proportion è <=1, come nel caso di BOOKKEEPER – 24
 viene settata come fixed version la prima. Quando OV = FV viene comunque calcolato
-il valore di proportion mettendo il denominatore a 1.
+il valore di proportion mettendo il denominatore a 1. Questo fa diminuire di molto il valore di proportion, 
+prova a toglierlo e vedere se cambiano i risultati.
 
 7)VERSION PROBLEM: Alcuni ticket presentano delle version non esistenti tra quelle elencate in Jira,
 questo capita soprattutto per i progetti ancora aperti.
