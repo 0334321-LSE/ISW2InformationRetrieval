@@ -415,13 +415,12 @@ public class WekaRetriever {
 
         resetClassifiers(filteredTraining);
         int notBuggy = getIsntBuggyIstanceNumber(filteredTraining);
-        int buggy = filteredTraining.size()-notBuggy;
-        Integer buggyInteger = buggy;
-        final boolean condition = buggyInteger.equals(0);
+        Integer buggy = filteredTraining.size()-notBuggy;
+        final boolean condition = buggy.equals(0);
 
-        double percentage = ((double) (notBuggy-buggy)/buggy) * 100;
-        //
+        double percentage;
         if (condition) percentage = 0;
+        else  percentage = ((double) (notBuggy-buggy)/buggy) * 100;
 
 
         FilteredClassifier fc = new FilteredClassifier();
