@@ -41,3 +41,7 @@ si basa sulla capacità individuale di predicibilità e il grado di ridonzanza t
 
 13)SMOTE: per raggiungere la stessa cardinalità tra classi buggy e non con smote si è usata la seguente percentuale:
 (notBuggy-buggy)/buggy) * 100
+
+Feature selection + oversampling
+Feature selection + smote
+Feature selection + sensitive learning
